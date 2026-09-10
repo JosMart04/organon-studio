@@ -32,6 +32,15 @@ export interface FormSeed {
 }
 
 let draftCounter = 0;
+
+/**
+ * Clave estable para una razón que aún no existe en el servidor.
+ *
+ * Muta un contador, así que **nunca** debe llamarse dentro de un updater de
+ * `setState`: React los invoca dos veces en modo estricto para detectar
+ * impurezas, y el resultado eran claves duplicadas. Se llama siempre antes,
+ * y al updater le llega el objeto ya construido.
+ */
 const nextKey = () => `borrador-${++draftCounter}`;
 
 export function ArgumentForm({
@@ -67,11 +76,16 @@ export function ArgumentForm({
   });
 
   const addPremise = useCallback(
-    (premiseType: DraftPremise["premiseType"] = "EMPIRICA") =>
-      setPremises((prev) => [
-        ...prev,
-        { key: nextKey(), id: null, statement: "", enthymeme: false, premiseType },
-      ]),
+    (premiseType: DraftPremise["premiseType"] = "EMPIRICA") => {
+      const nueva: DraftPremise = {
+        key: nextKey(),
+        id: null,
+        statement: "",
+        enthymeme: false,
+        premiseType,
+      };
+      setPremises((prev) => [...prev, nueva]);
+    },
     [],
   );
 
@@ -170,26 +184,27 @@ export function ArgumentForm({
       })),
     ];
 
+    // La clave se genera aquí, fuera del updater.
+    const conclusionDeReserva: DraftPremise = {
+      key: nextKey(),
+      id: null,
+      statement: ideas.mainClaim,
+      enthymeme: false,
+      premiseType: "CONCLUSION",
+    };
+
     setPremises((prev) => {
-      // La conclusion se mantiene al final aunque lleguen razones nuevas.
+      // La conclusión se mantiene al final aunque lleguen razones nuevas.
       const conclusion = prev.filter((p) => p.premiseType === "CONCLUSION");
       const resto = prev.filter((p) => p.premiseType !== "CONCLUSION");
-      // Si ya habia una conclusion escrita se respeta; si estaba en blanco se
-      // rellena con la tesis, porque dejarla vacia bloquearia el guardado.
+      // Si ya había una conclusión escrita se respeta; si estaba en blanco se
+      // rellena con la tesis, porque dejarla vacía bloquearía el guardado.
       const conclusionFinal =
         conclusion.length > 0
           ? conclusion.map((c) =>
               c.statement.trim() ? c : { ...c, statement: ideas.mainClaim },
             )
-          : [
-              {
-                key: nextKey(),
-                id: null,
-                statement: ideas.mainClaim,
-                enthymeme: false,
-                premiseType: "CONCLUSION" as const,
-              },
-            ];
+          : [conclusionDeReserva];
       return [...resto, ...nuevas, ...conclusionFinal];
     });
   };
