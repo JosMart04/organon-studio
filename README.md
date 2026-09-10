@@ -1,5 +1,7 @@
 # Organon Studio
 
+[![CI](https://github.com/JosMart04/organon-studio/actions/workflows/ci.yml/badge.svg)](https://github.com/JosMart04/organon-studio/actions/workflows/ci.yml)
+
 **Entorno Integrado de Lectura y Análisis Crítico (IDRE)** para estudiantes e investigadores de filosofía.
 
 Organon Studio no es un lector de PDF ni un gestor de notas. Es un banco de trabajo para la
@@ -54,6 +56,27 @@ cd client; npm install; npm run dev
 
 Flyway crea el esquema y el `DataInitializer` carga la semilla filosófica en el primer arranque:
 el debate moderno sobre causalidad y sustancia entre **Descartes, Spinoza, Hume y Kant**.
+
+## Pruebas
+
+```powershell
+cd server; .\mvnw.cmd test                            # unitarias, sin base de datos
+cd server; .\mvnw.cmd test "-Dexcluded.test.groups="  # + integración contra PostgreSQL
+cd client; npm run lint; npm run build
+```
+
+Las pruebas etiquetadas como `integracion` levantan el contexto de Spring contra la base de datos
+local y comprueban que Flyway migre y que Hibernate valide el mapeo. Quedan fuera de la ejecución
+por defecto y de CI, porque exigen un PostgreSQL vivo y el proyecto no usa contenedores.
+
+## Una particularidad de Windows
+
+El JDK crea el socket AF_UNIX de la tubería del selector de NIO en `java.io.tmpdir`. En algunas
+máquinas Windows ese fichero queda inaccesible nada más crearse si nace bajo `%LOCALAPPDATA%`: el
+`bind` funciona, el `connect` falla con `EINVAL` y **Tomcat no llega a levantar**, con un error que
+habla de red y no del antivirus. `server/pom.xml` redirige el directorio a `${user.home}/.organon-uds`
+mediante la propiedad `organon.uds.tmpdir`. Es inocuo en Linux y macOS: si el directorio no existe,
+el JDK cae solo al loopback TCP.
 
 ## Despliegue
 
