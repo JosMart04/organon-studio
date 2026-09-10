@@ -1,4 +1,5 @@
 import type {
+  AiStatus,
   Argument,
   ArgumentRequest,
   AuditReport,
@@ -7,16 +8,22 @@ import type {
   DialecticalRelation,
   DialecticalRelationRequest,
   Epoch,
+  ExplainResponse,
+  ExtractedIdeas,
   Objection,
   ObjectionRequest,
   Passage,
+  PassageRequest,
   Philosopher,
+  PhilosopherRequest,
   Premise,
   PremiseRequest,
   ResolvedTerm,
+  RivalSuggestions,
   SemanticConcept,
   TermDefinition,
   Work,
+  WorkRequest,
 } from "@/types/organon";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080/api/v1";
@@ -104,6 +111,27 @@ export const corpus = {
   listPassages: (workId: number) => request<Passage[]>(`/corpus/works/${workId}/passages`),
 
   getPassage: (id: number) => request<Passage>(`/corpus/passages/${id}`),
+
+  // --- Altas. El backend ya las exponia desde el principio; hasta ahora no
+  // habia ninguna pantalla que las usara.
+
+  createPhilosopher: (body: PhilosopherRequest) =>
+    request<Philosopher>("/corpus/philosophers", { method: "POST", ...json(body) }),
+
+  updatePhilosopher: (id: number, body: PhilosopherRequest) =>
+    request<Philosopher>(`/corpus/philosophers/${id}`, { method: "PUT", ...json(body) }),
+
+  createWork: (body: WorkRequest) =>
+    request<Work>("/corpus/works", { method: "POST", ...json(body) }),
+
+  updateWork: (id: number, body: WorkRequest) =>
+    request<Work>(`/corpus/works/${id}`, { method: "PUT", ...json(body) }),
+
+  createPassage: (body: PassageRequest) =>
+    request<Passage>("/corpus/passages", { method: "POST", ...json(body) }),
+
+  updatePassage: (id: number, body: PassageRequest) =>
+    request<Passage>(`/corpus/passages/${id}`, { method: "PUT", ...json(body) }),
 };
 
 // ---------------------------------------------------------------------------
@@ -186,6 +214,24 @@ export const dialectic = {
 
   removeRelation: (id: number) =>
     request<void>(`/dialectic-relations/${id}`, { method: "DELETE" }),
+};
+
+// ---------------------------------------------------------------------------
+// Asistente socrático
+// ---------------------------------------------------------------------------
+
+export const ai = {
+  /** Nunca falla: con Ollama apagado responde available:false y explica por qué. */
+  status: () => request<AiStatus>("/ai/status"),
+
+  explainSimple: (body: { text: string; author?: string; workTitle?: string }) =>
+    request<ExplainResponse>("/ai/explain-simple", { method: "POST", ...json(body) }),
+
+  extractIdeas: (body: { text: string; author?: string; workTitle?: string }) =>
+    request<ExtractedIdeas>("/ai/extract-ideas", { method: "POST", ...json(body) }),
+
+  findRivals: (body: { claim: string; author?: string; knownThinkers?: string[] }) =>
+    request<RivalSuggestions>("/ai/find-rivals", { method: "POST", ...json(body) }),
 };
 
 // ---------------------------------------------------------------------------

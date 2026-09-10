@@ -5,12 +5,13 @@ import { CircleAlert, Plus, Trash2 } from "lucide-react";
 import { argumentsApi } from "@/lib/api";
 import { OBJECTION_TYPES, type Argument, type ObjectionType } from "@/types/organon";
 import { Button, Panel } from "@/components/ui/panel";
-import { EnthymemeBadge, ObjectionTypeBadge, humanize } from "@/components/ui/badges";
+import { EnthymemeBadge, ObjectionTypeBadge } from "@/components/ui/badges";
+import { TEXTOS, humanize } from "@/lib/vocabulario";
 
 /**
- * Anclaje de objeciones. Se elige la premisa concreta que cede, no el
- * argumento entero: una crítica que no señala el eslabón exacto no es
- * utilizable.
+ * Críticas ancladas a la razón concreta que falla, no a la idea entera. Una
+ * crítica que no señala dónde exactamente cede el razonamiento no sirve de
+ * nada: no se puede responder ni comprobar.
  */
 export function ObjectionPanel({
   argument,
@@ -60,11 +61,12 @@ export function ObjectionPanel({
   };
 
   return (
-    <Panel title="Objeciones ancladas">
+    <Panel title={TEXTOS.criticaPregunta}>
       {anchored.length === 0 ? (
         <p className="text-[12px] leading-relaxed text-ink-500">
-          Ninguna todavía. Los entimemas sin objeción son el sitio por donde el
-          argumento suele ceder: conviene atacarlos antes de darlo por sólido.
+          Ninguna todavía. Los supuestos implícitos son el sitio por donde el
+          razonamiento suele ceder: conviene ponerlos a prueba antes de darlo
+          por bueno.
         </p>
       ) : (
         <ul className="mb-4 space-y-2">
@@ -83,7 +85,7 @@ export function ObjectionPanel({
                   onClick={() => remove(objection.id)}
                   disabled={busy}
                   className="ml-auto rounded p-1 text-ink-600 transition-colors hover:bg-fallacy-900/60 hover:text-fallacy-300 disabled:opacity-40"
-                  aria-label="Eliminar objeción"
+                  aria-label="Eliminar crítica"
                 >
                   <Trash2 className="size-3" />
                 </button>
@@ -103,11 +105,11 @@ export function ObjectionPanel({
             onChange={(e) => setPremiseId(e.target.value ? Number(e.target.value) : "")}
             className="min-w-0 flex-1 rounded border border-ink-700 bg-ink-900 px-2 py-1.5 text-[11px] text-ink-100 outline-none focus:border-accent-500"
           >
-            <option value="">Premisa que cede…</option>
+            <option value="">¿Qué razón falla?…</option>
             {argument.premises.map((p, i) => (
               <option key={p.id} value={p.id}>
                 {p.premiseType === "CONCLUSION" ? "C" : `P${i + 1}`}
-                {p.enthymeme ? " ⟨entimema⟩" : ""} — {p.statement.slice(0, 60)}
+                {p.enthymeme ? " (supuesto implícito)" : ""} — {p.statement.slice(0, 60)}
               </option>
             ))}
           </select>
@@ -129,7 +131,7 @@ export function ObjectionPanel({
           value={explanation}
           onChange={(e) => setExplanation(e.target.value)}
           rows={2}
-          placeholder="En qué falla exactamente esa premisa…"
+          placeholder="¿Por qué podría estar equivocado?"
           className="w-full resize-y rounded border border-ink-700 bg-ink-900 px-2.5 py-1.5 text-[12px] leading-relaxed text-ink-100 outline-none placeholder:text-ink-600 focus:border-accent-500"
         />
 
@@ -139,12 +141,13 @@ export function ObjectionPanel({
           onClick={submit}
           disabled={busy || premiseId === "" || !explanation.trim()}
         >
-          <Plus className="size-3" /> Anclar objeción
+          <Plus className="size-3" /> Añadir crítica
         </Button>
         <p className="flex items-start gap-1.5 pt-1 text-[10px] leading-relaxed text-ink-600">
           <CircleAlert className="mt-px size-3 shrink-0" />
-          Falacia formal, petición de principio y falsa dicotomía invalidan la
-          inferencia; el resto solo la debilita.
+          «Salta un paso lógico», «da por hecho lo que quiere probar» y
+          «presenta solo dos salidas» rompen el razonamiento entero. El resto
+          solo lo debilita.
         </p>
       </div>
     </Panel>

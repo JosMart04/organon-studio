@@ -71,7 +71,10 @@ export interface Philosopher {
   name: string;
   epoch: Epoch;
   school: string | null;
+  /** «¿Quién fue, en una línea?» */
   biographicalSummary: string | null;
+  /** Emoji con el que se le reconoce. Si falta, la interfaz pinta sus iniciales. */
+  avatarEmoji: string | null;
 }
 
 export interface Work {
@@ -90,9 +93,13 @@ export interface Passage {
   id: number;
   workId: number;
   workTitle: string;
+  /** Página, capítulo o referencia canónica. */
   locator: string;
+  /** Lo que dice el texto. */
   textContent: string;
   pageNumber: number | null;
+  /** Lo que piensa el lector. Aparte a propósito. */
+  personalNotes: string | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -239,6 +246,32 @@ export interface ArgumentRequest {
   premises: PremiseRequest[];
 }
 
+export interface PhilosopherRequest {
+  name: string;
+  epoch: Epoch;
+  school: string | null;
+  biographicalSummary: string | null;
+  avatarEmoji: string | null;
+}
+
+export interface WorkRequest {
+  philosopherId: number;
+  title: string;
+  originalYear: number | null;
+  /** La gran pregunta que intenta responder el libro. */
+  philosophicalProblem: string | null;
+  coreThesis: string | null;
+  directAdversaryId: number | null;
+}
+
+export interface PassageRequest {
+  workId: number;
+  locator: string;
+  textContent: string;
+  pageNumber: number | null;
+  personalNotes: string | null;
+}
+
 export interface ObjectionRequest {
   objectionType: ObjectionType;
   explanation: string;
@@ -249,4 +282,41 @@ export interface DialecticalRelationRequest {
   targetArgumentId: number;
   relationType: RelationType;
   description: string | null;
+}
+
+// ---------------------------------------------------------------------------
+// Asistente socrático
+// ---------------------------------------------------------------------------
+
+export interface AiStatus {
+  available: boolean;
+  configuredModel: string;
+  modelReady: boolean;
+  installedModels: string[];
+  /** Explicación ya redactada, lista para mostrar tal cual. */
+  message: string;
+}
+
+export interface ExplainResponse {
+  explanation: string;
+}
+
+/** Propuesta de desglose. Nada de esto está guardado todavía. */
+export interface ExtractedIdeas {
+  mainClaim: string;
+  reasons: string[];
+  unstatedAssumptions: string[];
+}
+
+export interface RivalSuggestion {
+  thinker: string;
+  work: string;
+  relation: RelationType;
+  explanation: string;
+  /** Si ya existe en el cuaderno, la conexión se puede crear con un clic. */
+  inNotebook: boolean;
+}
+
+export interface RivalSuggestions {
+  suggestions: RivalSuggestion[];
 }

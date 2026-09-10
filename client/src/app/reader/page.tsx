@@ -6,13 +6,17 @@ import { ChevronLeft, ChevronRight, Download, Quote, SquarePen } from "lucide-re
 import { argumentsApi, corpus, exports, semantics } from "@/lib/api";
 import type { Passage, Work } from "@/types/organon";
 import { useAsync } from "@/lib/use-async";
+import { useCorpusVersion } from "@/lib/corpus-refresh";
 import { cn } from "@/lib/cn";
 import { Button, ErrorState, PageHeader } from "@/components/ui/panel";
 import { InspectorTabs } from "@/components/reader/inspector-tabs";
 import { SelectionMenu } from "@/components/reader/selection-menu";
+import { SocraticButton, SocraticPanel } from "@/components/ai/socratic-panel";
 
 export default function ReaderPage() {
-  const works = useAsync(() => corpus.listWorks(), []);
+  const [asistenteAbierto, setAsistenteAbierto] = useState(false);
+  const corpusVersion = useCorpusVersion();
+  const works = useAsync(() => corpus.listWorks(), [corpusVersion]);
 
   // Obra y pasaje viajan juntos: cambiar de obra debe reiniciar el pasaje, y
   // guardarlos en un solo estado lo consigue sin un efecto que los sincronice.
@@ -27,7 +31,7 @@ export default function ReaderPage() {
     [works.data, workId],
   );
 
-  const passages = useAsync(() => corpus.listPassages(workId!), [workId], {
+  const passages = useAsync(() => corpus.listPassages(workId!), [workId, corpusVersion], {
     enabled: workId !== undefined,
   });
 
@@ -54,8 +58,8 @@ export default function ReaderPage() {
   return (
     <div className="flex flex-col md:h-screen">
       <PageHeader
-        title="Lector"
-        subtitle="La fuente primaria a la izquierda, el aparato crítico a la derecha."
+        title="Leer"
+        subtitle="El texto a la izquierda, lo que vas descubriendo a la derecha."
         actions={
           <>
             <select
@@ -70,11 +74,12 @@ export default function ReaderPage() {
                 </option>
               ))}
             </select>
+            <SocraticButton onClick={() => setAsistenteAbierto(true)} />
             {workId !== undefined && (
               <a
                 href={exports.markdownUrl(workId)}
                 className="inline-flex items-center gap-1.5 rounded border border-ink-700 bg-ink-800 px-3 py-1.5 text-xs font-medium text-ink-200 transition-colors hover:bg-ink-700 hover:text-ink-50"
-                title="Exportar la obra como notas atómicas Zettelkasten"
+                title="Descargar tus notas de este libro en Markdown (Obsidian)"
               >
                 <Download className="size-3.5" /> Markdown
               </a>
@@ -105,6 +110,14 @@ export default function ReaderPage() {
           />
         </aside>
       </div>
+
+      <SocraticPanel
+        open={asistenteAbierto}
+        onClose={() => setAsistenteAbierto(false)}
+        text={passage?.textContent ?? ""}
+        author={activeWork?.philosopherName}
+        workTitle={activeWork?.title}
+      />
     </div>
   );
 }
@@ -169,10 +182,13 @@ function SourcePanel({
             </header>
           )}
 
-          {loading && <p className="text-sm text-ink-500">Cargando pasajes…</p>}
+          {loading && <p className="text-sm text-ink-500">Cargando…</p>}
 
           {!loading && !passage && (
-            <p className="text-sm text-ink-500">Esta obra no tiene pasajes cargados.</p>
+            <p className="text-sm text-ink-500">
+              Este libro todavía no tiene ninguna idea anotada. Usa «+ Idea» en el
+              menú de la izquierda.
+            </p>
           )}
 
           {passage && work && (
@@ -208,7 +224,7 @@ function SourcePanel({
           className="inline-flex items-center gap-1.5 text-[11px] text-ink-500 transition-colors hover:text-accent-400"
         >
           <SquarePen className="size-3" />
-          Reconstruir un argumento de esta obra
+          Desmontar una idea de este libro
         </Link>
       </footer>
     </section>

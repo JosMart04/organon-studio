@@ -145,7 +145,9 @@ public class DialecticService {
                     Map.of(
                             "label", philosopher.getName(),
                             "epoch", philosopher.getEpoch().name(),
-                            "school", philosopher.getSchool() == null ? "" : philosopher.getSchool()),
+                            "school", philosopher.getSchool() == null ? "" : philosopher.getSchool(),
+                            "avatarEmoji",
+                            philosopher.getAvatarEmoji() == null ? "" : philosopher.getAvatarEmoji()),
                     new GraphPositionDto(i * COLUMN_WIDTH, PHILOSOPHER_ROW_Y)));
         }
 

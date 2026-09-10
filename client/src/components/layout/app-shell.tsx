@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -7,39 +8,68 @@ import {
   GitBranchPlus,
   Library,
   Network,
+  NotebookPen,
+  Plus,
   SquareSigma,
+  User,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
+import {
+  PassageDialog,
+  PhilosopherDialog,
+  WorkDialog,
+} from "@/components/create/create-dialogs";
+import { CorpusRefreshProvider, useRefrescarCorpus } from "@/lib/corpus-refresh";
 
 const NAV = [
   {
     href: "/reader",
-    label: "Lector",
-    hint: "Fuente primaria y aparato crítico",
+    label: "Leer",
+    hint: "El texto y tus notas, lado a lado",
     icon: BookOpenText,
   },
   {
     href: "/arguments/builder",
-    label: "Constructor",
-    hint: "Reconstrucción en forma estándar",
+    label: "Desmontar",
+    hint: "Las razones de una idea",
     icon: SquareSigma,
   },
   {
     href: "/glossary",
-    label: "Glosario",
-    hint: "Sobrecarga semántica por autor",
+    label: "Palabras",
+    hint: "La misma palabra, sentidos distintos",
     icon: Library,
   },
   {
     href: "/graph",
-    label: "Grafo",
-    hint: "Red dialéctica del debate",
+    label: "Debate",
+    hint: "Quién discute con quién",
     icon: Network,
   },
 ] as const;
 
+type Alta = "pensador" | "libro" | "idea" | null;
+
+const ALTAS = [
+  { id: "pensador" as const, label: "Pensador", icon: User },
+  { id: "libro" as const, label: "Libro", icon: BookOpenText },
+  { id: "idea" as const, label: "Idea", icon: NotebookPen },
+];
+
 export function AppShell({ children }: { children: React.ReactNode }) {
+  return (
+    <CorpusRefreshProvider>
+      <Shell>{children}</Shell>
+    </CorpusRefreshProvider>
+  );
+}
+
+function Shell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const [alta, setAlta] = useState<Alta>(null);
+
+  // Tras crear algo, las vistas abiertas recargan sus datos.
+  const refrescar = useRefrescarCorpus();
 
   return (
     <div className="flex min-h-screen">
@@ -50,14 +80,36 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         >
           <GitBranchPlus className="size-5 text-accent-400" strokeWidth={1.75} />
           <div className="leading-tight">
-            <div className="font-serif text-[15px] font-semibold text-ink-50">
-              Organon
-            </div>
+            <div className="font-serif text-[15px] font-semibold text-ink-50">Organon</div>
             <div className="text-[10px] uppercase tracking-[0.14em] text-ink-400">
               Studio
             </div>
           </div>
         </Link>
+
+        {/* Añadir al cuaderno está disponible desde cualquier pantalla: lo que
+            se descubre leyendo se apunta en el momento o se pierde. */}
+        <div className="border-b border-ink-800 p-2.5">
+          <p className="mb-1.5 px-1 text-[10px] uppercase tracking-[0.12em] text-ink-500">
+            Añadir
+          </p>
+          <div className="grid grid-cols-3 gap-1">
+            {ALTAS.map(({ id, label, icon: Icon }) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setAlta(id)}
+                className="flex flex-col items-center gap-1 rounded-md border border-ink-800 bg-ink-850/60 px-1 py-2 text-[10px] text-ink-300 transition-colors hover:border-accent-500/50 hover:bg-accent-900/40 hover:text-accent-300"
+              >
+                <span className="relative">
+                  <Icon className="size-4" strokeWidth={1.75} />
+                  <Plus className="absolute -right-1.5 -top-1 size-2.5" strokeWidth={3} />
+                </span>
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
 
         <nav className="flex flex-1 flex-col gap-0.5 p-2.5">
           {NAV.map(({ href, label, hint, icon: Icon }) => {
@@ -82,9 +134,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 />
                 <span className="min-w-0">
                   <span className="block text-[13px] font-medium">{label}</span>
-                  <span className="block text-[11px] leading-snug text-ink-500">
-                    {hint}
-                  </span>
+                  <span className="block text-[11px] leading-snug text-ink-500">{hint}</span>
                 </span>
               </Link>
             );
@@ -92,7 +142,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </nav>
 
         <p className="border-t border-ink-800 px-5 py-3 text-[10px] leading-relaxed text-ink-600">
-          Entorno Integrado de Lectura y Análisis Crítico
+          Tu cuaderno de lectura filosófica
         </p>
       </aside>
 
@@ -117,10 +167,25 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </Link>
             );
           })}
+          <button
+            type="button"
+            onClick={() => setAlta("idea")}
+            className="ml-auto shrink-0 rounded border border-ink-700 px-2 py-1 text-xs text-ink-300"
+          >
+            <Plus className="size-3.5" />
+          </button>
         </nav>
 
         <main className="min-w-0 flex-1">{children}</main>
       </div>
+
+      <PhilosopherDialog
+        open={alta === "pensador"}
+        onClose={() => setAlta(null)}
+        onCreated={refrescar}
+      />
+      <WorkDialog open={alta === "libro"} onClose={() => setAlta(null)} onCreated={refrescar} />
+      <PassageDialog open={alta === "idea"} onClose={() => setAlta(null)} onCreated={refrescar} />
     </div>
   );
 }

@@ -18,18 +18,30 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { EyeOff, GripVertical, Trash2 } from "lucide-react";
+import { EyeOff, GripVertical, TriangleAlert, Trash2 } from "lucide-react";
 import { PREMISE_TYPES, type PremiseType } from "@/types/organon";
 import { cn } from "@/lib/cn";
-import { humanize } from "@/components/ui/badges";
+import { TEXTOS, humanize } from "@/lib/vocabulario";
 
-/** Premisa en edición. `key` es estable aunque la premisa aún no exista en el servidor. */
+/** Razón en edición. `key` es estable aunque todavía no exista en el servidor. */
 export interface DraftPremise {
   key: string;
   id: number | null;
   statement: string;
   enthymeme: boolean;
   premiseType: PremiseType;
+}
+
+/**
+ * ¿Hay una conclusión y no está al final?
+ *
+ * El servidor también lo detecta al revisar, pero eso llega tarde: el error se
+ * comete arrastrando, y el aviso tiene que aparecer en ese momento. Se calcula
+ * en cada render a partir de la lista, sin estado ni efecto.
+ */
+export function conclusionFueraDeSitio(premises: DraftPremise[]): boolean {
+  const indice = premises.findIndex((p) => p.premiseType === "CONCLUSION");
+  return indice >= 0 && indice !== premises.length - 1;
 }
 
 export function PremiseList({
@@ -40,7 +52,7 @@ export function PremiseList({
   onChange: (next: DraftPremise[]) => void;
 }) {
   const sensors = useSensors(
-    // 6px de holgura para que un clic en el textarea no inicie un arrastre.
+    // 6px de holgura para que un clic en el campo de texto no inicie un arrastre.
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
@@ -58,37 +70,51 @@ export function PremiseList({
 
   const remove = (key: string) => onChange(premises.filter((p) => p.key !== key));
 
-  // La numeración salta la conclusión: en forma estándar C no es una premisa más.
-  let premiseNumber = 0;
-  const labels = premises.map((p) =>
-    p.premiseType === "CONCLUSION" ? "C" : `P${++premiseNumber}`,
+  // La numeración salta la conclusión: no es una razón más, es a donde llegan.
+  let numero = 0;
+  const etiquetas = premises.map((p) =>
+    p.premiseType === "CONCLUSION" ? "C" : `P${++numero}`,
   );
 
+  const avisoConclusion = conclusionFueraDeSitio(premises);
+
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragEnd={handleDragEnd}
-      // Solo el eje vertical: una premisa nunca se mueve de lado.
-      modifiers={[restrictToVerticalAxis]}
-    >
-      <SortableContext
-        items={premises.map((p) => p.key)}
-        strategy={verticalListSortingStrategy}
+    <>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+        // Solo el eje vertical: una razón nunca se mueve de lado.
+        modifiers={[restrictToVerticalAxis]}
       >
-        <ol className="space-y-2">
-          {premises.map((premise, i) => (
-            <SortablePremise
-              key={premise.key}
-              premise={premise}
-              label={labels[i]}
-              onUpdate={(patch) => update(premise.key, patch)}
-              onRemove={() => remove(premise.key)}
-            />
-          ))}
-        </ol>
-      </SortableContext>
-    </DndContext>
+        <SortableContext
+          items={premises.map((p) => p.key)}
+          strategy={verticalListSortingStrategy}
+        >
+          <ol className="space-y-2">
+            {premises.map((premise, i) => (
+              <SortablePremise
+                key={premise.key}
+                premise={premise}
+                label={etiquetas[i]}
+                onUpdate={(patch) => update(premise.key, patch)}
+                onRemove={() => remove(premise.key)}
+              />
+            ))}
+          </ol>
+        </SortableContext>
+      </DndContext>
+
+      {avisoConclusion && (
+        <p
+          role="status"
+          className="mt-3 flex items-center gap-2 rounded-md border border-accent-500/40 bg-accent-900/40 px-3 py-2 text-[12px] text-accent-300"
+        >
+          <TriangleAlert className="size-4 shrink-0" />
+          {TEXTOS.conclusionFueraDeSitio}
+        </p>
+      )}
+    </>
   );
 }
 
@@ -106,7 +132,7 @@ function SortablePremise({
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: premise.key });
 
-  const isConclusion = premise.premiseType === "CONCLUSION";
+  const esConclusion = premise.premiseType === "CONCLUSION";
 
   return (
     <li
@@ -115,19 +141,20 @@ function SortablePremise({
       className={cn(
         "rounded-md border bg-ink-850/60 transition-shadow",
         isDragging && "z-10 shadow-lg shadow-black/50",
-        isConclusion
+        esConclusion
           ? "border-accent-500/40"
           : premise.enthymeme
-            ? "border-accent-500/25 border-dashed"
+            ? "border-dashed border-accent-500/25"
             : "border-ink-800",
       )}
     >
       <div className="flex items-start gap-2 p-2.5">
         <button
+          type="button"
           {...attributes}
           {...listeners}
           className="mt-1 cursor-grab touch-none rounded p-0.5 text-ink-600 transition-colors hover:text-ink-300 active:cursor-grabbing"
-          aria-label="Reordenar premisa"
+          aria-label="Reordenar"
         >
           <GripVertical className="size-4" />
         </button>
@@ -135,8 +162,9 @@ function SortablePremise({
         <span
           className={cn(
             "mt-1 w-7 shrink-0 text-center font-mono text-[11px]",
-            isConclusion ? "text-accent-400" : "text-ink-500",
+            esConclusion ? "text-accent-400" : "text-ink-500",
           )}
+          title={esConclusion ? "Conclusión" : "Razón"}
         >
           {label}
         </span>
@@ -146,7 +174,11 @@ function SortablePremise({
             value={premise.statement}
             onChange={(e) => onUpdate({ statement: e.target.value })}
             rows={2}
-            placeholder="Enuncia la premisa…"
+            placeholder={
+              esConclusion
+                ? "¿A qué conclusión llega el autor?"
+                : "¿Qué razón da el autor?"
+            }
             className="w-full resize-y rounded border border-ink-700 bg-ink-900 px-2.5 py-1.5 font-serif text-[13px] leading-relaxed text-ink-100 outline-none placeholder:text-ink-600 focus:border-accent-500"
           />
 
@@ -155,6 +187,7 @@ function SortablePremise({
               value={premise.premiseType}
               onChange={(e) => onUpdate({ premiseType: e.target.value as PremiseType })}
               className="rounded border border-ink-700 bg-ink-900 px-2 py-1 text-[11px] text-ink-200 outline-none focus:border-accent-500"
+              title="Qué clase de razón es"
             >
               {PREMISE_TYPES.map((t) => (
                 <option key={t} value={t}>
@@ -164,8 +197,9 @@ function SortablePremise({
             </select>
 
             <button
+              type="button"
               onClick={() => onUpdate({ enthymeme: !premise.enthymeme })}
-              title="Marca la premisa que el autor no escribió pero su inferencia necesita"
+              title={TEXTOS.supuestoImplicitoAyuda}
               className={cn(
                 "inline-flex items-center gap-1.5 rounded border px-2 py-1 text-[11px] font-medium transition-colors",
                 premise.enthymeme
@@ -174,13 +208,14 @@ function SortablePremise({
               )}
             >
               <EyeOff className="size-3" />
-              Entimema
+              {TEXTOS.supuestoImplicito}
             </button>
 
             <button
+              type="button"
               onClick={onRemove}
               className="ml-auto rounded p-1 text-ink-600 transition-colors hover:bg-fallacy-900/60 hover:text-fallacy-300"
-              aria-label="Eliminar premisa"
+              aria-label="Eliminar"
             >
               <Trash2 className="size-3.5" />
             </button>

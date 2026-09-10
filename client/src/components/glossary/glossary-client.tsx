@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { Columns3, TriangleAlert } from "lucide-react";
 import { semantics } from "@/lib/api";
 import { useAsync } from "@/lib/use-async";
+import { useCorpusVersion } from "@/lib/corpus-refresh";
 import { cn } from "@/lib/cn";
 import { EmptyState, ErrorState, PageHeader } from "@/components/ui/panel";
 
@@ -12,7 +13,8 @@ export function GlossaryClient() {
   const params = useSearchParams();
   const initial = params.get("conceptId");
 
-  const concepts = useAsync(() => semantics.listConcepts(), []);
+  const corpusVersion = useCorpusVersion();
+  const concepts = useAsync(() => semantics.listConcepts(), [corpusVersion]);
   const [picked, setPicked] = useState<number | undefined>(
     initial ? Number(initial) : undefined,
   );
@@ -40,8 +42,8 @@ export function GlossaryClient() {
   return (
     <div className="flex min-h-screen flex-col">
       <PageHeader
-        title="Sobrecarga semántica"
-        subtitle="La misma palabra en boca de autores distintos. Ver las definiciones en columnas paralelas es constatar que no hablan de lo mismo."
+        title="La misma palabra, significados distintos"
+        subtitle="Cuando dos filósofos discuten, a veces no se contradicen: es que llaman igual a cosas distintas. Aquí se ve de un vistazo."
       />
 
       <div className="flex flex-wrap gap-1.5 border-b border-ink-800 px-6 py-3">
@@ -78,12 +80,15 @@ export function GlossaryClient() {
               )}
               <p className="mt-3 inline-flex items-center gap-1.5 rounded border border-fallacy-500/30 bg-fallacy-900/25 px-2.5 py-1 text-[11px] text-fallacy-300">
                 <TriangleAlert className="size-3" />
-                {readings.length} acepciones incompatibles
+                {readings.length}{" "}
+                {readings.length === 1
+                  ? "autor lo entiende a su manera"
+                  : "autores lo entienden de forma distinta"}
               </p>
             </div>
 
             {readings.length === 0 ? (
-              <EmptyState title="Ningún autor ha fijado este término todavía." />
+              <EmptyState title="Todavía nadie ha anotado qué entiende por esta palabra." />
             ) : (
               <div
                 className="grid gap-4"
@@ -127,9 +132,8 @@ export function GlossaryClient() {
 
             <p className="mt-6 flex items-start gap-1.5 text-[11px] leading-relaxed text-ink-600">
               <Columns3 className="mt-px size-3.5 shrink-0" />
-              Cada definición está delimitada por autor y obra. Al leer, el inspector
-              resuelve automáticamente cuál de estas acepciones gobierna el pasaje que
-              tienes delante.
+              Cada definición queda atada a su autor y a su libro. Mientras lees,
+              el panel de la derecha te muestra sola la que corresponde.
             </p>
           </>
         )}

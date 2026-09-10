@@ -14,10 +14,13 @@ import {
   type Work,
 } from "@/types/organon";
 import { Button, EmptyState, ErrorState, PageHeader, Panel } from "@/components/ui/panel";
-import { SeverityBadge, SoundStatusBadge, humanize } from "@/components/ui/badges";
+import { SeverityBadge, SoundStatusBadge } from "@/components/ui/badges";
+import { TEXTOS, humanize, tituloHallazgo } from "@/lib/vocabulario";
 import { Latex } from "@/components/ui/latex";
 import { PremiseList, type DraftPremise } from "@/components/arguments/premise-list";
 import { ObjectionPanel } from "@/components/arguments/objection-panel";
+import { SocraticButton, SocraticPanel } from "@/components/ai/socratic-panel";
+import type { ExtractedIdeas } from "@/types/organon";
 
 export interface FormSeed {
   workId: number | undefined;
@@ -57,6 +60,7 @@ export function ArgumentForm({
   const [audit, setAudit] = useState<AuditReport>();
   const [busy, setBusy] = useState<"save" | "audit" | null>(null);
   const [error, setError] = useState<string>();
+  const [asistenteAbierto, setAsistenteAbierto] = useState(false);
 
   const passages = useAsync(() => corpus.listPassages(workId!), [workId], {
     enabled: workId !== undefined,
@@ -141,6 +145,55 @@ export function ArgumentForm({
     }
   };
 
+  /**
+   * Vuelca la propuesta del asistente en el formulario. No guarda: el lector
+   * la edita y decide. Las razones existentes se conservan; la propuesta se
+   * anade debajo, porque pisar lo que uno ya habia escrito seria hostil.
+   */
+  const usarPropuesta = (ideas: ExtractedIdeas) => {
+    if (!name.trim()) setName(ideas.mainClaim);
+
+    const nuevas: DraftPremise[] = [
+      ...ideas.reasons.map((statement) => ({
+        key: nextKey(),
+        id: null,
+        statement,
+        enthymeme: false,
+        premiseType: "EMPIRICA" as const,
+      })),
+      ...ideas.unstatedAssumptions.map((statement) => ({
+        key: nextKey(),
+        id: null,
+        statement,
+        enthymeme: true,
+        premiseType: "AXIOMATICA" as const,
+      })),
+    ];
+
+    setPremises((prev) => {
+      // La conclusion se mantiene al final aunque lleguen razones nuevas.
+      const conclusion = prev.filter((p) => p.premiseType === "CONCLUSION");
+      const resto = prev.filter((p) => p.premiseType !== "CONCLUSION");
+      // Si ya habia una conclusion escrita se respeta; si estaba en blanco se
+      // rellena con la tesis, porque dejarla vacia bloquearia el guardado.
+      const conclusionFinal =
+        conclusion.length > 0
+          ? conclusion.map((c) =>
+              c.statement.trim() ? c : { ...c, statement: ideas.mainClaim },
+            )
+          : [
+              {
+                key: nextKey(),
+                id: null,
+                statement: ideas.mainClaim,
+                enthymeme: false,
+                premiseType: "CONCLUSION" as const,
+              },
+            ];
+      return [...resto, ...nuevas, ...conclusionFinal];
+    });
+  };
+
   const refreshObjections = async () => {
     if (!argumentId) return;
     applyServerState(await argumentsApi.get(argumentId));
@@ -150,18 +203,19 @@ export function ArgumentForm({
   return (
     <div className="flex min-h-screen flex-col">
       <PageHeader
-        title="Constructor de argumentos"
-        subtitle="Reconstrucción en forma estándar. Arrastra para ordenar, marca los supuestos implícitos y formaliza la inferencia."
+        title="Estructura de la idea"
+        subtitle="Desmonta el razonamiento del autor: sus razones, a qué conclusión llega y qué da por supuesto sin decirlo."
         actions={
           <>
             {saved && <SoundStatusBadge status={saved.soundStatus} />}
+            <SocraticButton onClick={() => setAsistenteAbierto(true)} />
             <Button variant="primary" onClick={save} disabled={!canSave || busy !== null}>
               <Save className="size-3.5" />
               {busy === "save" ? "Guardando…" : argumentId ? "Guardar cambios" : "Crear"}
             </Button>
             <Button onClick={runAudit} disabled={!argumentId || busy !== null}>
               <Stethoscope className="size-3.5" />
-              {busy === "audit" ? "Auditando…" : "Auditar"}
+              {busy === "audit" ? "Revisando…" : "Revisar"}
             </Button>
             {argumentId && (
               <a
@@ -179,22 +233,22 @@ export function ArgumentForm({
         <div className="space-y-4">
           {error && <ErrorState message={error} />}
 
-          <Panel title="Identificación">
+          <Panel title="De qué va">
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="sm:col-span-2">
                 <span className="mb-1 block text-[11px] text-ink-400">
-                  Nombre del argumento
+                  ¿Qué idea estás desmontando?
                 </span>
                 <input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Prueba de Dios por la realidad objetiva de la idea de infinito"
+                  placeholder="La prueba de Descartes de que Dios existe"
                   className="w-full rounded border border-ink-700 bg-ink-900 px-2.5 py-1.5 font-serif text-[13px] text-ink-100 outline-none placeholder:text-ink-600 focus:border-accent-500"
                 />
               </label>
 
               <label>
-                <span className="mb-1 block text-[11px] text-ink-400">Obra</span>
+                <span className="mb-1 block text-[11px] text-ink-400">Libro</span>
                 <select
                   value={workId ?? ""}
                   onChange={(e) => {
@@ -213,7 +267,7 @@ export function ArgumentForm({
 
               <label>
                 <span className="mb-1 block text-[11px] text-ink-400">
-                  Pasaje <span className="text-ink-600">(opcional)</span>
+                  Fragmento <span className="text-ink-600">(opcional)</span>
                 </span>
                 <select
                   value={passageId ?? ""}
@@ -222,7 +276,7 @@ export function ArgumentForm({
                   }
                   className="w-full rounded border border-ink-700 bg-ink-900 px-2.5 py-1.5 font-mono text-xs text-ink-100 outline-none focus:border-accent-500"
                 >
-                  <option value="">Sin anclar a un pasaje</option>
+                  <option value="">Sin anclar a un fragmento</option>
                   {passages.data?.map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.locator}
@@ -232,7 +286,7 @@ export function ArgumentForm({
               </label>
 
               <label className="sm:col-span-2">
-                <span className="mb-1 block text-[11px] text-ink-400">Esquema formal</span>
+                <span className="mb-1 block text-[11px] text-ink-400">¿Cómo encaja el razonamiento?</span>
                 <select
                   value={scheme}
                   onChange={(e) => setScheme(e.target.value as FormalScheme)}
@@ -249,11 +303,11 @@ export function ArgumentForm({
           </Panel>
 
           <Panel
-            title="Forma estándar"
+            title={TEXTOS.razones}
             actions={
               <div className="flex gap-1.5">
                 <Button size="sm" onClick={() => addPremise("EMPIRICA")}>
-                  <Plus className="size-3" /> Premisa
+                  <Plus className="size-3" /> Razón
                 </Button>
                 <Button
                   size="sm"
@@ -262,7 +316,7 @@ export function ArgumentForm({
                   disabled={hasConclusion}
                   title={
                     hasConclusion
-                      ? "Un argumento en forma estándar sostiene una sola conclusión"
+                      ? "Una idea llega a una sola conclusión"
                       : undefined
                   }
                 >
@@ -273,8 +327,8 @@ export function ArgumentForm({
           >
             {premises.length === 0 ? (
               <EmptyState
-                title="Sin premisas todavía."
-                hint="Añade la primera, o selecciona una frase en el lector para traerla aquí."
+                title="Todavía no has escrito ninguna razón."
+                hint="Añade la primera, o selecciona una frase mientras lees para traerla aquí."
               />
             ) : (
               <PremiseList premises={premises} onChange={setPremises} />
@@ -285,38 +339,19 @@ export function ArgumentForm({
         </div>
 
         <div className="space-y-4">
-          <Panel title="Formalización">
-            <textarea
-              value={latex}
-              onChange={(e) => setLatex(e.target.value)}
-              rows={5}
-              spellCheck={false}
-              placeholder={"P \\to Q \\;\\wedge\\; P \\;\\vdash\\; Q"}
-              className="w-full resize-y rounded border border-ink-700 bg-ink-900 px-2.5 py-2 font-mono text-[11.5px] leading-relaxed text-ink-100 outline-none placeholder:text-ink-600 focus:border-accent-500"
-            />
-            <div className="mt-3 min-h-[3.5rem] overflow-x-auto rounded border border-ink-800 bg-ink-950 px-3 py-3">
-              {latex.trim() ? (
-                <Latex expression={latex} display className="text-ink-100" />
-              ) : (
-                <p className="text-center text-[11px] text-ink-600">
-                  La fórmula se previsualiza aquí mientras escribes
-                </p>
-              )}
-            </div>
-          </Panel>
-
-          <Panel title="Auditoría">
+          <Panel title={TEXTOS.revision}>
             {!argumentId && (
               <p className="text-[12px] leading-relaxed text-ink-500">
-                Guarda el argumento para poder someterlo a las pruebas de estrés.
+                Guarda primero y luego pulsa «Revisar»: te dirá si el razonamiento se
+                sostiene y dónde flaquea.
               </p>
             )}
 
             {argumentId && !audit && (
               <p className="text-[12px] leading-relaxed text-ink-500">
-                Sin auditar en esta sesión. La auditoría comprueba que la
-                reconstrucción cierre, que el orden sea legible y que los supuestos
-                implícitos hayan sido examinados.
+                Sin revisar todavía. Comprueba que llegues a una conclusión, que el
+                orden se entienda y que hayas discutido lo que el autor da por
+                supuesto sin decirlo.
               </p>
             )}
 
@@ -330,9 +365,9 @@ export function ArgumentForm({
                 <dl className="grid grid-cols-3 gap-2 text-center">
                   {(
                     [
-                      ["Premisas", audit.premiseCount],
-                      ["Entimemas", audit.enthymemeCount],
-                      ["Objeciones", audit.objectionCount],
+                      ["Razones", audit.premiseCount],
+                      ["Supuestos", audit.enthymemeCount],
+                      ["Críticas", audit.objectionCount],
                     ] as const
                   ).map(([label, value]) => (
                     <div
@@ -362,11 +397,11 @@ export function ArgumentForm({
                     >
                       <div className="flex items-center gap-2">
                         <SeverityBadge severity={finding.severity} />
-                        <code className="font-mono text-[10px] text-ink-500">
-                          {finding.code}
-                        </code>
+                        <span className="text-[11px] font-medium text-ink-200">
+                          {tituloHallazgo(finding.code)}
+                        </span>
                       </div>
-                      <p className="mt-1.5 text-[12px] leading-relaxed text-ink-200">
+                      <p className="mt-1.5 text-[12px] leading-relaxed text-ink-400">
                         {finding.message}
                       </p>
                     </li>
@@ -375,8 +410,57 @@ export function ArgumentForm({
               </div>
             )}
           </Panel>
+
+          {/*
+            La notación formal deja de estar en el centro. Quien lee filosofía
+            por gusto no necesita ver LaTeX para desmontar un argumento; quien
+            quiera curiosear, lo despliega. <details> nativo: accesible por
+            teclado de fábrica y sin estado que gestionar.
+          */}
+          <details className="group rounded-lg border border-ink-800 bg-ink-900/60">
+            <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-400 transition-colors hover:text-ink-200">
+              <span aria-hidden>🔬</span>
+              {TEXTOS.notacionFormal}
+              <span className="ml-auto text-ink-600 transition-transform group-open:rotate-90">
+                &rsaquo;
+              </span>
+            </summary>
+
+            <div className="border-t border-ink-800 p-4">
+              <p className="mb-2.5 text-[11px] leading-relaxed text-ink-500">
+                Opcional, y solo para quien le interese. La idea se sostiene o se
+                cae exactamente igual sin esto.
+              </p>
+              <textarea
+                value={latex}
+                onChange={(e) => setLatex(e.target.value)}
+                rows={4}
+                spellCheck={false}
+                placeholder={"P \\to Q \\;\\wedge\\; P \\;\\vdash\\; Q"}
+                className="w-full resize-y rounded border border-ink-700 bg-ink-900 px-2.5 py-2 font-mono text-[11.5px] leading-relaxed text-ink-100 outline-none placeholder:text-ink-600 focus:border-accent-500"
+              />
+              {latex.trim() && (
+                <div className="mt-3 overflow-x-auto rounded border border-ink-800 bg-ink-950 px-3 py-3">
+                  <Latex expression={latex} display className="text-ink-100" />
+                </div>
+              )}
+            </div>
+          </details>
         </div>
       </div>
+
+      <SocraticPanel
+        open={asistenteAbierto}
+        onClose={() => setAsistenteAbierto(false)}
+        // Lo que hay escrito es el material a analizar: las razones si las hay,
+        // y si no, el nombre de la idea.
+        text={
+          premises.map((p) => p.statement).filter(Boolean).join(" ").trim() || name.trim()
+        }
+        author={works.find((w) => w.id === workId)?.philosopherName}
+        workTitle={works.find((w) => w.id === workId)?.title}
+        onUseIdeas={usarPropuesta}
+      />
     </div>
   );
 }

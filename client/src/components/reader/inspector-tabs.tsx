@@ -11,16 +11,16 @@ import {
   ObjectionTypeBadge,
   PremiseTypeBadge,
   SoundStatusBadge,
-  humanize,
 } from "@/components/ui/badges";
+import { TEXTOS, humanize } from "@/lib/vocabulario";
 import { EmptyState } from "@/components/ui/panel";
 
 type Tab = "glosario" | "argumentos" | "objeciones";
 
 const TABS: { id: Tab; label: string; icon: typeof BookMarked }[] = [
   { id: "glosario", label: "Glosario", icon: BookMarked },
-  { id: "argumentos", label: "Argumentos", icon: SquareSigma },
-  { id: "objeciones", label: "Objeciones", icon: CircleAlert },
+  { id: "argumentos", label: "Ideas", icon: SquareSigma },
+  { id: "objeciones", label: "Críticas", icon: CircleAlert },
 ];
 
 export function InspectorTabs({
@@ -83,13 +83,13 @@ export function InspectorTabs({
         {tab === "glosario" && (
           <>
             <p className="text-[11px] leading-relaxed text-ink-500">
-              Cómo usa estas palabras{" "}
+              Qué entiende por estas palabras{" "}
               <span className="text-ink-300">{work?.philosopherName}</span>. Otros
-              autores las emplean en sentidos incompatibles.
+              autores usan las mismas con otro sentido.
             </p>
             {glossaryLoading && <p className="text-xs text-ink-500">Cargando…</p>}
             {!glossaryLoading && glossary.length === 0 && (
-              <EmptyState title="Sin términos registrados para este autor." />
+              <EmptyState title="Todavía no has anotado ningún término de este autor." />
             )}
             {glossary.map((definition) => (
               <article
@@ -123,8 +123,8 @@ export function InspectorTabs({
             {argumentsLoading && <p className="text-xs text-ink-500">Cargando…</p>}
             {!argumentsLoading && argumentsForWork.length === 0 && (
               <EmptyState
-                title="Sin argumentos reconstruidos."
-                hint="Selecciona texto en el panel izquierdo para empezar uno."
+                title="Todavía no has desmontado ninguna idea de este libro."
+                hint="Selecciona una frase a la izquierda para empezar."
               />
             )}
             {anchored.length > 0 && (
@@ -147,10 +147,10 @@ export function InspectorTabs({
         {tab === "objeciones" && (
           <>
             <p className="text-[11px] leading-relaxed text-ink-500">
-              Cada objeción señala la premisa exacta que cede, no el argumento entero.
+              Cada crítica señala la razón exacta que falla, no la idea entera.
             </p>
             {objections.length === 0 && (
-              <EmptyState title="Ninguna objeción registrada en esta obra." />
+              <EmptyState title="Ninguna crítica anotada en este libro." />
             )}
             {objections.map(({ objection, premise, argument }) => (
               <article
@@ -226,9 +226,16 @@ function ArgumentCard({ argument, muted }: { argument: Argument; muted?: boolean
       </ol>
 
       {argument.latexFormalization && (
-        <div className="mt-2.5 overflow-x-auto rounded bg-ink-900/80 px-2 py-1.5">
-          <Latex expression={argument.latexFormalization} display className="text-ink-200" />
-        </div>
+        // Colapsada tambien aqui: el aparato critico del lector no debe abrirse
+        // con una formula delante.
+        <details className="mt-2.5">
+          <summary className="cursor-pointer list-none text-[10px] text-ink-600 transition-colors hover:text-ink-400">
+            🔬 {TEXTOS.notacionFormal}
+          </summary>
+          <div className="mt-1.5 overflow-x-auto rounded bg-ink-900/80 px-2 py-1.5">
+            <Latex expression={argument.latexFormalization} display className="text-ink-200" />
+          </div>
+        </details>
       )}
 
       <div className="mt-2 flex flex-wrap gap-1">

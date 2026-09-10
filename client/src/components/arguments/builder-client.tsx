@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { corpus, argumentsApi } from "@/lib/api";
 import { useAsync } from "@/lib/use-async";
+import { useCorpusVersion } from "@/lib/corpus-refresh";
 import type { Argument, PremiseType } from "@/types/organon";
 import { ErrorState } from "@/components/ui/panel";
 import { ArgumentForm, type FormSeed } from "@/components/arguments/argument-form";
@@ -26,7 +27,8 @@ export function BuilderClient() {
     argumentIdParam ? Number(argumentIdParam) : null,
   );
 
-  const works = useAsync(() => corpus.listWorks(), []);
+  const corpusVersion = useCorpusVersion();
+  const works = useAsync(() => corpus.listWorks(), [corpusVersion]);
   const existing = useAsync(() => argumentsApi.get(argumentId!), [argumentId], {
     enabled: argumentId !== null,
   });
