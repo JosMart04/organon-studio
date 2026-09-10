@@ -1,0 +1,53 @@
+# ---------- Java / Maven ----------
+target/
+!.mvn/wrapper/maven-wrapper.properties
+.mvn/wrapper/maven-wrapper.jar
+*.class
+*.war
+build/
+out/
+
+# ---------- Node / Next.js ----------
+node_modules/
+.next/
+.turbo/
+next-env.d.ts
+.vercel/
+*.tsbuildinfo
+
+# ---------- Entorno y secretos ----------
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# ---------- Logs ----------
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs/
+
+# ---------- IDE ----------
+.idea/
+*.iml
+*.iws
+.vscode/
+!.vscode/extensions.json
+.settings/
+.project
+.classpath
+nbproject/
+
+# ---------- Windows ----------
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+desktop.ini
+$RECYCLE.BIN/
+*.lnk
+*.stackdump
+
+# ---------- macOS / Linux (colaboradores) ----------
+.DS_Store
+*~
