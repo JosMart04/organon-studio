@@ -14,8 +14,8 @@ import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import studio.organon.server.domain.BaseEntity;
 
 /**
@@ -56,7 +56,7 @@ public class Premise extends BaseEntity {
     private PremiseType premiseType = PremiseType.EMPIRICA;
 
     @OneToMany(mappedBy = "premise", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Objection> objections = new ArrayList<>();
+    private Set<Objection> objections = new LinkedHashSet<>();
 
     protected Premise() {
     }
@@ -113,11 +113,11 @@ public class Premise extends BaseEntity {
         this.premiseType = premiseType;
     }
 
-    public List<Objection> getObjections() {
+    public Set<Objection> getObjections() {
         return objections;
     }
 
-    public void setObjections(List<Objection> objections) {
+    public void setObjections(Set<Objection> objections) {
         this.objections = objections;
     }
 }

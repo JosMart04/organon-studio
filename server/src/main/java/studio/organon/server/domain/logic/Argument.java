@@ -14,8 +14,8 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import studio.organon.server.domain.BaseEntity;
 import studio.organon.server.domain.corpus.Passage;
 import studio.organon.server.domain.corpus.Work;
@@ -56,9 +56,12 @@ public class Argument extends BaseEntity {
     @Column(name = "sound_status", nullable = false, length = 20)
     private SoundStatus soundStatus = SoundStatus.PENDIENTE;
 
+    // Set y no List: el grafo de carga trae premisas y objeciones en la misma
+    // consulta, y dos bolsas simultaneas rompen a Hibernate
+    // (MultipleBagFetchException) ademas de duplicar filas por el join.
     @OneToMany(mappedBy = "argument", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("orderIndex ASC")
-    private List<Premise> premises = new ArrayList<>();
+    private Set<Premise> premises = new LinkedHashSet<>();
 
     protected Argument() {
     }
@@ -130,11 +133,11 @@ public class Argument extends BaseEntity {
         this.soundStatus = soundStatus;
     }
 
-    public List<Premise> getPremises() {
+    public Set<Premise> getPremises() {
         return premises;
     }
 
-    public void setPremises(List<Premise> premises) {
+    public void setPremises(Set<Premise> premises) {
         this.premises = premises;
     }
 }

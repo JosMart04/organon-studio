@@ -15,6 +15,23 @@
 	<description>Organon Studio - IDRE backend</description>
 	<properties>
 		<java.version>25</java.version>
+
+		<!--
+			Directorio donde el JDK crea el socket AF_UNIX de la tuberia de
+			despertar del Selector de NIO.
+
+			Por defecto el JDK lo pone en java.io.tmpdir. En maquinas Windows
+			con antivirus que vigila %LOCALAPPDATA% el fichero de socket queda
+			inaccesible nada mas crearse: el bind funciona, el connect falla con
+			EINVAL y Tomcat no arranca ("Unable to establish loopback
+			connection"). Apuntarlo fuera de esa carpeta lo evita.
+
+			Es seguro en cualquier plataforma: si el directorio no existe, el
+			bind AF_UNIX falla y PipeImpl cae solo al loopback TCP, que es el
+			comportamiento historico.
+		-->
+		<organon.uds.tmpdir>${user.home}/.organon-uds</organon.uds.tmpdir>
+		<organon.jvm.args>-Djdk.net.unixdomain.tmpdir=${organon.uds.tmpdir}</organon.jvm.args>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -79,6 +96,16 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<jvmArguments>${organon.jvm.args}</jvmArguments>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<argLine>${organon.jvm.args}</argLine>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>

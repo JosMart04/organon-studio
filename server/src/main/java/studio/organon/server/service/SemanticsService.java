@@ -140,11 +140,21 @@ public class SemanticsService {
                 .filter(d -> d.getWork() == null)
                 .findFirst();
 
-        TermDefinition winner = workScoped.or(() -> authorScoped).orElse(null);
+        // Ultimo recurso: si el autor no fija el termino ni en esta obra ni de
+        // forma general, sirve cualquier acepcion suya documentada en otra obra.
+        // Sigue siendo como el usa la palabra, que es lo que el lector pregunta;
+        // devolver SIN_DEFINICION teniendo el dato seria esconderlo.
+        Optional<TermDefinition> anyByAuthor = candidates.stream().findFirst();
+
+        TermDefinition winner = workScoped
+                .or(() -> authorScoped)
+                .or(() -> anyByAuthor)
+                .orElse(null);
+
         DefinitionScope scope;
         if (workScoped.isPresent()) {
             scope = DefinitionScope.OBRA;
-        } else if (authorScoped.isPresent()) {
+        } else if (winner != null) {
             scope = DefinitionScope.AUTOR;
         } else {
             scope = DefinitionScope.SIN_DEFINICION;
