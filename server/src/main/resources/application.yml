@@ -1,0 +1,59 @@
+spring:
+  application:
+    name: organon-server
+
+  # Carga nativa de server/.env (formato properties). `optional:` evita fallar
+  # en produccion, donde las variables llegan del entorno del proveedor cloud.
+  config:
+    import: "optional:file:./.env[.properties]"
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/organon_local_db}
+    username: ${SPRING_DATASOURCE_USERNAME:organon_admin}
+    password: ${SPRING_DATASOURCE_PASSWORD:}
+    hikari:
+      pool-name: organon-pool
+      maximum-pool-size: 10
+      minimum-idle: 2
+
+  jpa:
+    # El esquema lo posee Flyway. Hibernate solo valida que coincida.
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+          batch_size: 25
+        order_inserts: true
+        order_updates: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: false
+
+server:
+  port: ${SERVER_PORT:8080}
+  error:
+    include-message: always
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when-authorized
+
+organon:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
+  seed:
+    enabled: ${ORGANON_SEED_ENABLED:true}
+
+logging:
+  level:
+    studio.organon.server: DEBUG

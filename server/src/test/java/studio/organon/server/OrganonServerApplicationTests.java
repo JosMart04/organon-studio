@@ -1,0 +1,13 @@
+package studio.organon.server;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+
+@SpringBootTest
+class OrganonServerApplicationTests {
+
+	@Test
+	void contextLoads() {
+	}
+
+}
