@@ -6,5 +6,6 @@ public record PassageDto(
         String workTitle,
         String locator,
         String textContent,
-        Integer pageNumber) {
+        Integer pageNumber,
+        String personalNotes) {
 }

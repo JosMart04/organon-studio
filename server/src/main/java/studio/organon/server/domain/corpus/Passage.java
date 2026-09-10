@@ -39,6 +39,14 @@ public class Passage extends BaseEntity {
     @Column(name = "page_number")
     private Integer pageNumber;
 
+    /**
+     * Lo que el lector piensa del pasaje. Va aparte de textContent a proposito:
+     * mezclar la cita con el comentario propio es la via rapida a atribuirle al
+     * autor cosas que no dijo.
+     */
+    @Column(name = "personal_notes", columnDefinition = "text")
+    private String personalNotes;
+
     protected Passage() {
     }
 
@@ -79,5 +87,13 @@ public class Passage extends BaseEntity {
 
     public void setPageNumber(Integer pageNumber) {
         this.pageNumber = pageNumber;
+    }
+
+    public String getPersonalNotes() {
+        return personalNotes;
+    }
+
+    public void setPersonalNotes(String personalNotes) {
+        this.personalNotes = personalNotes;
     }
 }

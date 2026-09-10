@@ -9,6 +9,7 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import studio.organon.server.ai.AiUnavailableException;
 
 /** Traduce las excepciones del dominio a respuestas RFC 9457 (ProblemDetail). */
 @RestControllerAdvice
@@ -25,6 +26,18 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleConflict(ConflictException ex) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
         problem.setTitle("Conflicto con el estado del corpus");
+        return problem;
+    }
+
+    /**
+     * El asistente no esta disponible. No es culpa del lector, asi que el
+     * mensaje del dominio ya viene redactado para mostrarse tal cual.
+     */
+    @ExceptionHandler(AiUnavailableException.class)
+    public ProblemDetail handleAiUnavailable(AiUnavailableException ex) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage());
+        problem.setTitle("El asistente no esta disponible");
         return problem;
     }
 

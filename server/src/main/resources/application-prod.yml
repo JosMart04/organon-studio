@@ -59,6 +59,10 @@ management:
       show-details: never
 
 organon:
+  ai:
+    # Ollama corre en la maquina del lector, no en Render. El asistente queda
+    # apagado y la interfaz lo comunica sin romperse.
+    enabled: ${ORGANON_AI_ENABLED:false}
   cors:
     # El dominio de Vercel, separado por comas si hay varios.
     allowed-origins: ${CORS_ALLOWED_ORIGINS}

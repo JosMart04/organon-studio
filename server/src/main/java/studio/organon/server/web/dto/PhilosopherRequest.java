@@ -9,5 +9,6 @@ public record PhilosopherRequest(
         @NotBlank @Size(max = 160) String name,
         @NotNull Epoch epoch,
         @Size(max = 160) String school,
-        String biographicalSummary) {
+        String biographicalSummary,
+        @Size(max = 16) String avatarEmoji) {
 }

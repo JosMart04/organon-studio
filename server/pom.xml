@@ -17,6 +17,19 @@
 		<java.version>25</java.version>
 
 		<!--
+			Las pruebas etiquetadas como "integracion" exigen un PostgreSQL vivo,
+			asi que quedan fuera de la ejecucion por defecto. Para incluirlas:
+			mvnw test -Dexcluded.test.groups=
+		-->
+		<excluded.test.groups>integracion</excluded.test.groups>
+
+		<!--
+			Spring AI 2.0.1 declara spring-boot 4.1.1 en sus starters, la misma
+			version que usa este proyecto, asi que no hay conflicto de BOM.
+		-->
+		<spring-ai.version>2.0.1</spring-ai.version>
+
+		<!--
 			Directorio donde el JDK crea el socket AF_UNIX de la tuberia de
 			despertar del Selector de NIO.
 
@@ -30,13 +43,6 @@
 			bind AF_UNIX falla y PipeImpl cae solo al loopback TCP, que es el
 			comportamiento historico.
 		-->
-		<!--
-			Las pruebas etiquetadas como "integracion" exigen un PostgreSQL vivo,
-			asi que quedan fuera de la ejecucion por defecto. Para incluirlas:
-			mvnw test -Dexcluded.test.groups=
-		-->
-		<excluded.test.groups>integracion</excluded.test.groups>
-
 		<organon.uds.tmpdir>${user.home}/.organon-uds</organon.uds.tmpdir>
 		<organon.jvm.args>-Djdk.net.unixdomain.tmpdir=${organon.uds.tmpdir}</organon.jvm.args>
 	</properties>
@@ -44,6 +50,10 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.ai</groupId>
+			<artifactId>spring-ai-starter-model-ollama</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -97,6 +107,18 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.springframework.ai</groupId>
+				<artifactId>spring-ai-bom</artifactId>
+				<version>${spring-ai.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
 	<build>
 		<plugins>

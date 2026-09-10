@@ -31,6 +31,11 @@ public class Philosopher extends BaseEntity {
     @Column(name = "biographical_summary", columnDefinition = "text")
     private String biographicalSummary;
 
+    /** Emoji con el que el lector reconoce al pensador. Vacio: la interfaz pinta sus iniciales. */
+    @Size(max = 16)
+    @Column(name = "avatar_emoji", length = 16)
+    private String avatarEmoji;
+
     protected Philosopher() {
     }
 
@@ -39,6 +44,14 @@ public class Philosopher extends BaseEntity {
         this.epoch = epoch;
         this.school = school;
         this.biographicalSummary = biographicalSummary;
+    }
+
+    public String getAvatarEmoji() {
+        return avatarEmoji;
+    }
+
+    public void setAvatarEmoji(String avatarEmoji) {
+        this.avatarEmoji = avatarEmoji;
     }
 
     public String getName() {

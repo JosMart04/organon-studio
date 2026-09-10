@@ -31,7 +31,8 @@ public class DomainMapper {
                 philosopher.getName(),
                 philosopher.getEpoch(),
                 philosopher.getSchool(),
-                philosopher.getBiographicalSummary());
+                philosopher.getBiographicalSummary(),
+                philosopher.getAvatarEmoji());
     }
 
     public WorkDto toDto(Work work) {
@@ -55,7 +56,8 @@ public class DomainMapper {
                 passage.getWork().getTitle(),
                 passage.getLocator(),
                 passage.getTextContent(),
-                passage.getPageNumber());
+                passage.getPageNumber(),
+                passage.getPersonalNotes());
     }
 
     public SemanticConceptDto toDto(SemanticConcept concept, int definitionCount) {

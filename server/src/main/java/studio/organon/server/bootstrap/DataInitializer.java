@@ -65,7 +65,7 @@ public class DataInitializer implements ApplicationRunner {
                            TermDefinitionRepository definitionRepository,
                            ArgumentRepository argumentRepository,
                            DialecticalRelationRepository relationRepository,
-                           @Value("${organon.seed.enabled:true}") boolean enabled) {
+                           @Value("${organon.seed.enabled:false}") boolean enabled) {
         this.philosopherRepository = philosopherRepository;
         this.workRepository = workRepository;
         this.passageRepository = passageRepository;
@@ -90,33 +90,33 @@ public class DataInitializer implements ApplicationRunner {
 
         log.info("Cargando semilla: debate moderno sobre causalidad y sustancia");
 
-        Philosopher descartes = philosopherRepository.save(new Philosopher(
+        Philosopher descartes = philosopherRepository.save(withAvatar(new Philosopher(
                 "René Descartes", Epoch.MODERNA, "Racionalismo",
                 "Funda la filosofía moderna sobre la certeza del sujeto pensante. La duda "
                         + "metódica arrasa con todo saber recibido para dejar en pie un único punto "
                         + "de apoyo, el cogito, desde el que intenta reconstruir la física y la "
-                        + "metafísica con el rigor de la geometría."));
+                        + "metafísica con el rigor de la geometría."), "🕯️"));
 
-        Philosopher spinoza = philosopherRepository.save(new Philosopher(
+        Philosopher spinoza = philosopherRepository.save(withAvatar(new Philosopher(
                 "Baruch Spinoza", Epoch.MODERNA, "Racionalismo",
                 "Toma la definición cartesiana de sustancia y la aplica sin concesiones: si "
                         + "sustancia es lo que es en sí y se concibe por sí, solo puede haber una. "
                         + "El dualismo de Descartes se disuelve en un monismo donde pensamiento y "
-                        + "extensión son atributos de lo mismo."));
+                        + "extensión son atributos de lo mismo."), "🔷"));
 
-        Philosopher hume = philosopherRepository.save(new Philosopher(
+        Philosopher hume = philosopherRepository.save(withAvatar(new Philosopher(
                 "David Hume", Epoch.MODERNA, "Empirismo",
                 "Lleva el empirismo hasta sus consecuencias escépticas. Si toda idea procede "
                         + "de una impresión, y no hay impresión de conexión necesaria, entonces la "
                         + "causalidad no es un descubrimiento de la razón sino una costumbre de la "
-                        + "imaginación."));
+                        + "imaginación."), "🎱"));
 
-        Philosopher kant = philosopherRepository.save(new Philosopher(
+        Philosopher kant = philosopherRepository.save(withAvatar(new Philosopher(
                 "Immanuel Kant", Epoch.MODERNA, "Idealismo trascendental",
                 "Reconoce que Hume tiene razón en que la necesidad causal no se lee en la "
                         + "experiencia, y concluye lo contrario que él: la causalidad no viene "
                         + "después de la experiencia porque es una de sus condiciones de "
-                        + "posibilidad."));
+                        + "posibilidad."), "🧭"));
 
         Work meditaciones = workRepository.save(new Work(
                 descartes, "Meditaciones metafísicas", 1641,
@@ -489,6 +489,12 @@ public class DataInitializer implements ApplicationRunner {
                         + "condición a priori de que haya experiencia objetiva.",
                 false, PremiseType.CONCLUSION));
         return argument;
+    }
+
+    /** Emoji con el que la interfaz reconoce al pensador de un vistazo. */
+    private static Philosopher withAvatar(Philosopher philosopher, String emoji) {
+        philosopher.setAvatarEmoji(emoji);
+        return philosopher;
     }
 
     private Passage passage(Work work, String locator) {

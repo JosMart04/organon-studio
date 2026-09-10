@@ -59,6 +59,7 @@ public class CorpusService {
         });
         Philosopher philosopher = new Philosopher(
                 request.name(), request.epoch(), request.school(), request.biographicalSummary());
+        philosopher.setAvatarEmoji(request.avatarEmoji());
         return mapper.toDto(philosopherRepository.save(philosopher));
     }
 
@@ -69,6 +70,7 @@ public class CorpusService {
         philosopher.setEpoch(request.epoch());
         philosopher.setSchool(request.school());
         philosopher.setBiographicalSummary(request.biographicalSummary());
+        philosopher.setAvatarEmoji(request.avatarEmoji());
         return mapper.toDto(philosopher);
     }
 
@@ -137,6 +139,7 @@ public class CorpusService {
                 request.locator(),
                 request.textContent(),
                 request.pageNumber());
+        passage.setPersonalNotes(request.personalNotes());
         return mapper.toDto(passageRepository.save(passage));
     }
 
@@ -147,6 +150,7 @@ public class CorpusService {
         passage.setLocator(request.locator());
         passage.setTextContent(request.textContent());
         passage.setPageNumber(request.pageNumber());
+        passage.setPersonalNotes(request.personalNotes());
         return mapper.toDto(passage);
     }
 

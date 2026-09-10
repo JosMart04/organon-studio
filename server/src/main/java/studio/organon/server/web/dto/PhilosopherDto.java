@@ -7,5 +7,6 @@ public record PhilosopherDto(
         String name,
         Epoch epoch,
         String school,
-        String biographicalSummary) {
+        String biographicalSummary,
+        String avatarEmoji) {
 }

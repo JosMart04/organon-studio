@@ -9,5 +9,6 @@ public record PassageRequest(
         @NotNull Long workId,
         @NotBlank @Size(max = 120) String locator,
         @NotBlank String textContent,
-        @PositiveOrZero Integer pageNumber) {
+        @PositiveOrZero Integer pageNumber,
+        String personalNotes) {
 }
