@@ -21,6 +21,10 @@ next-env.d.ts
 !.env.example
 !.env.*.example
 
+# ---------- Sockets AF_UNIX del selector de la JVM ----------
+socket_*
+*.sock
+
 # ---------- Logs ----------
 *.log
 npm-debug.log*
