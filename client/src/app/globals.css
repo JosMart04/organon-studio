@@ -1,0 +1,180 @@
+@import "tailwindcss";
+
+/* ===========================================================================
+   Organon Studio — Editorial Académico Moderno
+
+   Modo oscuro único y deliberado. La lectura prolongada de fuentes primarias
+   es el caso de uso central, así que el fondo es carbón mate y el texto se
+   asienta en un blanco roto, nunca puro: el contraste máximo cansa la vista
+   en sesiones largas.
+
+   Los acentos codifican estado epistémico y no se usan decorativamente:
+     · ámbar    → argumento, premisa, trabajo en curso
+     · esmeralda→ validez establecida
+     · rosa     → falacia, objeción fatal
+     · índigo   → término del glosario
+   =========================================================================== */
+
+@theme {
+  /* --- Pizarra / carbón: la superficie de trabajo ------------------------ */
+  --color-ink-950: #0b0d10;
+  --color-ink-900: #12151a;
+  --color-ink-850: #171b22;
+  --color-ink-800: #1d222b;
+  --color-ink-700: #272e39;
+  --color-ink-600: #38414f;
+  --color-ink-500: #4e5a6b;
+  --color-ink-400: #6f7d90;
+  --color-ink-300: #94a1b2;
+  --color-ink-200: #bcc6d2;
+  --color-ink-100: #dde3ea;
+  --color-ink-50: #eef2f6;
+
+  /* --- Acentos semánticos ---------------------------------------------- */
+  --color-accent-500: #d99a2b;
+  --color-accent-400: #e5ab45;
+  --color-accent-300: #f0c16f;
+  --color-accent-900: #3a2a0d;
+
+  --color-valid-500: #2f9e6e;
+  --color-valid-400: #43b483;
+  --color-valid-300: #6fcaa3;
+  --color-valid-900: #0e2e21;
+
+  --color-fallacy-500: #c0556b;
+  --color-fallacy-400: #d46e82;
+  --color-fallacy-300: #e595a4;
+  --color-fallacy-900: #3a1620;
+
+  --color-term-500: #6d7fd4;
+  --color-term-400: #8593e0;
+  --color-term-300: #a5b0ea;
+  --color-term-900: #1e2350;
+
+  /* --- Tipografía -------------------------------------------------------
+     Serif para el texto filosófico: es lo que se lee despacio.
+     Mono para lógica formal y locators: alineación y precisión.
+     Sans solo para el cromo de la interfaz. */
+  --font-serif: var(--font-source-serif), "Iowan Old Style", Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, "Cascadia Code", Consolas, monospace;
+
+  --text-reader: 1.0625rem;
+  --text-reader--line-height: 1.75;
+}
+
+:root {
+  color-scheme: dark;
+
+  /* Roles semánticos: los componentes citan estos, no la escala cruda. */
+  --surface: var(--color-ink-950);
+  --surface-raised: var(--color-ink-900);
+  --surface-overlay: var(--color-ink-850);
+  --border-subtle: var(--color-ink-800);
+  --border-strong: var(--color-ink-700);
+  --text-primary: var(--color-ink-100);
+  --text-secondary: var(--color-ink-300);
+  --text-muted: var(--color-ink-400);
+}
+
+@layer base {
+  * {
+    border-color: var(--border-subtle);
+  }
+
+  body {
+    background-color: var(--surface);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Barras de desplazamiento discretas: en un lector de doble panel hay
+     muchas, y las nativas de Windows rompen la sobriedad del conjunto. */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--color-ink-700);
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-ink-600);
+  }
+
+  ::selection {
+    background-color: var(--color-accent-900);
+    color: var(--color-accent-300);
+  }
+}
+
+@layer components {
+  /* Cuerpo del texto primario en el lector. */
+  .prose-source {
+    font-family: var(--font-serif);
+    font-size: var(--text-reader);
+    line-height: 1.75;
+    color: var(--color-ink-100);
+    hyphens: auto;
+    text-wrap: pretty;
+  }
+
+  .prose-source p + p {
+    margin-top: 1.15em;
+  }
+
+  /* Referencia canónica: Metafísica 980a, AT VII 40, KrV B 4. */
+  .locator {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.02em;
+    color: var(--color-accent-400);
+  }
+}
+
+/* KaTeX hereda el color del contenedor en vez del negro por defecto. */
+.katex {
+  color: inherit;
+  font-size: 1.05em;
+}
+
+.katex-display {
+  margin: 0.75rem 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.25rem 0;
+}
+
+/* React Flow: neutralizar su tema claro de fábrica. */
+.react-flow__background {
+  background-color: var(--color-ink-950);
+}
+
+.react-flow__controls-button {
+  background-color: var(--color-ink-850);
+  border-color: var(--color-ink-700);
+  color: var(--color-ink-200);
+  fill: currentColor;
+}
+
+.react-flow__controls-button:hover {
+  background-color: var(--color-ink-800);
+}
+
+.react-flow__minimap {
+  background-color: var(--color-ink-900);
+}
+
+.react-flow__attribution {
+  background: transparent;
+  color: var(--color-ink-600);
+}
