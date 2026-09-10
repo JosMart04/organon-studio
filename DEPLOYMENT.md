@@ -80,6 +80,9 @@ base vacía no falle.
    | `CORS_ALLOWED_ORIGINS` | `http://localhost:3000` *(provisional; se corrige en el paso 4)* |
    | `JAVA_VERSION` | `25` |
 
+   El asistente queda **desactivado** en producción: Ollama corre en la máquina del lector, no en
+   Render. El perfil `prod` lo apaga solo, y la interfaz lo comunica sin romperse.
+
    `PORT` lo inyecta Render solo; el perfil de producción ya lo lee.
 
 **Sobre `DATABASE_URL`:** Neon y Render la entregan en el formato de `libpq`
@@ -97,14 +100,14 @@ curl https://TU-SERVICIO.onrender.com/api/v1/corpus/philosophers
 ```
 
 El primero debe devolver `{"status":"UP"}`. El segundo, `[]`: la base está
-migrada pero vacía, porque la semilla viene desactivada en producción.
+migrada pero vacía, que es el estado correcto — el cuaderno se llena leyendo.
 
-### Cargar la semilla filosófica (opcional)
+### Cargar los datos de ejemplo (opcional)
 
 Para poblar la instalación con el debate Descartes–Spinoza–Hume–Kant, poner
 `ORGANON_SEED_ENABLED=true`, reiniciar el servicio, comprobar que los datos
 están y **volver a ponerlo en `false`**. El cargador es idempotente (no hace
-nada si ya hay filósofos), pero dejarlo activo no aporta nada.
+nada si ya hay pensadores), pero dejarlo activo no aporta nada.
 
 > **El plan gratuito de Render duerme el servicio tras 15 minutos sin tráfico.**
 > La primera petición después de dormir tarda entre 30 y 60 segundos en
@@ -165,11 +168,14 @@ que parte la cadena por comas.
 ## 5. Verificación de extremo a extremo
 
 1. Abrir el dominio de Vercel.
-2. Ir a **Lector**: el selector debe listar las obras.
-3. Seleccionar una palabra del texto y pulsar **Ver término**: debe resolver la
-   acepción del autor y mostrar las lecturas rivales.
-4. Ir a **Grafo**: deben aparecer los nodos y las aristas dialécticas.
-5. En la consola del navegador no debe haber errores de CORS.
+2. Con el cuaderno vacío, crear un pensador y un libro desde **Añadir** en el
+   menú lateral. Deben guardarse y aparecer al instante en los desplegables.
+3. Ir a **Leer**: el selector debe listar el libro recién creado.
+4. Seleccionar una palabra del texto y pulsar **Ver término**.
+5. Ir a **El debate**: deben aparecer los nodos.
+6. Abrir el **Asistente**: en producción debe decir que está desactivado, sin
+   romper nada.
+7. En la consola del navegador no debe haber errores de CORS.
 
 Si los paneles salen vacíos y la consola muestra
 `No 'Access-Control-Allow-Origin' header`, es el paso 4.

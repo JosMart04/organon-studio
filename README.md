@@ -2,26 +2,28 @@
 
 [![CI](https://github.com/JosMart04/organon-studio/actions/workflows/ci.yml/badge.svg)](https://github.com/JosMart04/organon-studio/actions/workflows/ci.yml)
 
-**Entorno Integrado de Lectura y Análisis Crítico (IDRE)** para estudiantes e investigadores de filosofía.
+**Un cuaderno para leer filosofía en serio**, pensado para quien la lee por gusto y no para
+especialistas en lógica formal.
 
-Organon Studio no es un lector de PDF ni un gestor de notas. Es un banco de trabajo para la
-operación central del oficio filosófico: tomar un texto fuente, extraer su argumento, reconstruirlo
-en forma estándar, someterlo a estrés y situarlo en la red de debate a la que pertenece.
+Estás leyendo un libro de filosofía y quieres enterarte de verdad: qué sostiene el autor, en qué se
+apoya, dónde flaquea y con quién está discutiendo sin decirlo. Organon Studio es para eso. No pide
+saber qué es un modus tollens, y la notación lógica está escondida tras un desplegable para quien
+quiera curiosear.
 
 ## Qué resuelve
 
-| Módulo | Problema que ataca |
+| Módulo | Para qué sirve |
 |---|---|
-| **Lector de doble panel** | Leer la fuente primaria sin perder de vista el aparato analítico. Texto a la izquierda, glosario/argumentos/objeciones sincronizados a la derecha. |
-| **Reconstrucción formal** | Pasar de la prosa al esquema estándar: premisas ordenadas, entimemas explicitados, conclusión, formalización en LaTeX. |
-| **Auditoría de validez** | Detectar supuestos implícitos y anclar objeciones tipificadas (contraejemplo, petición de principio, falacia formal…) a la premisa exacta que las merece. |
-| **Sobrecarga semántica** | «Sustancia» no significa lo mismo en Descartes que en Spinoza. El glosario define cada término **por autor y por obra**, y los compara lado a lado. |
-| **Grafo dialéctico** | Ver quién refuta, presupone, extiende o radicaliza a quién, como un grafo navegable en vez de una bibliografía plana. |
-| **Exportación** | Sacar el trabajo a Markdown Zettelkasten (Obsidian) y a bloques LaTeX listos para un artículo. |
+| **Leer** | El fragmento a la izquierda, lo que vas descubriendo a la derecha. Selecciona una frase y conviértela en nota, o pregunta qué entiende ese autor por una palabra concreta. |
+| **Desmontar** | Qué sostiene el autor, con qué razones y qué está dando por obvio sin decirlo. Se ordenan arrastrando, y cada crítica se ancla a la razón exacta que falla. |
+| **Palabras** | «Sustancia» no quiere decir lo mismo en Descartes que en Spinoza. Muchas discusiones filosóficas son solo eso. Aquí se ven en columnas. |
+| **El debate** | Quién refuta a quién y quién se apoya en quién, como un mapa navegable que se dibuja con lo que vas anotando. |
+| **Asistente** | Un modelo que corre en tu propio ordenador: explica un pasaje denso, propone cómo desmontarlo y sugiere quién le llevaría la contraria. Opcional. |
+| **Exportación** | Tus notas a Markdown (Obsidian) y, si te hace falta, bloques LaTeX para un trabajo. |
 
 ## Stack
 
-- **Backend** — Java 25 · Spring Boot 4.1.1 · Spring Data JPA · Flyway · PostgreSQL 18
+- **Backend** — Java 25 · Spring Boot 4.1.1 · Spring Data JPA · Flyway · PostgreSQL 18 · Spring AI (Ollama)
 - **Frontend** — Next.js 16 (App Router) · TypeScript · Tailwind CSS v4 · `@xyflow/react` · KaTeX · `@dnd-kit`
 - **Infra** — Windows nativo en desarrollo (sin Docker) · Vercel + Render + Neon en producción
 
@@ -54,8 +56,21 @@ cd server; .\mvnw.cmd spring-boot:run
 cd client; npm install; npm run dev
 ```
 
-Flyway crea el esquema y el `DataInitializer` carga la semilla filosófica en el primer arranque:
-el debate moderno sobre causalidad y sustancia entre **Descartes, Spinoza, Hume y Kant**.
+Flyway crea el esquema. **El cuaderno arranca vacío a propósito**: se llena leyendo, con los botones
+«Añadir» del menú lateral. Si quieres datos de ejemplo —el debate sobre causalidad entre Descartes,
+Spinoza, Hume y Kant—, arranca una vez con `ORGANON_SEED_ENABLED=true`; la carga es idempotente.
+
+**5. Asistente (opcional)**
+
+```powershell
+ollama serve
+ollama pull gemma4:12b     # o el modelo que prefieras
+```
+
+El modelo se elige con `OLLAMA_MODEL` (por defecto `gemma4:12b`). Uno de 12 000 millones de
+parámetros puede tardar más de un minuto por respuesta en CPU; `gemma4:e2b` responde en unos
+segundos con menos finura. **Si Ollama no está encendido la aplicación funciona igual**: el panel lo
+detecta, lo dice y se sigue tomando notas a mano.
 
 ## Pruebas
 
