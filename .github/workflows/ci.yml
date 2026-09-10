@@ -1,0 +1,77 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Un push nuevo cancela la ejecucion anterior de la misma rama.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (Java 25 · Spring Boot 4)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Configurar JDK 25
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+
+      - name: Compilar y probar
+        # Las pruebas de integracion quedan fuera: exigen un PostgreSQL vivo y
+        # el proyecto no usa contenedores. Se ejecutan en local contra la base
+        # de datos de desarrollo con -Dexcluded.test.groups=
+        run: ./mvnw --batch-mode --no-transfer-progress clean verify
+
+      - name: Empaquetar el jar ejecutable
+        run: ./mvnw --batch-mode --no-transfer-progress package -DskipTests
+
+      - name: Publicar el artefacto
+        uses: actions/upload-artifact@v7
+        with:
+          name: organon-server-jar
+          path: server/target/*.jar
+          retention-days: 7
+          if-no-files-found: error
+
+  frontend:
+    name: Frontend (Node 24 · Next.js 16)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Configurar Node 24
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build de produccion
+        # El backend no existe durante el build; solo se necesita que la
+        # variable este definida para que se inyecte en el bundle.
+        env:
+          NEXT_PUBLIC_API_URL: https://organon-api.invalid/api/v1
+        run: npm run build
