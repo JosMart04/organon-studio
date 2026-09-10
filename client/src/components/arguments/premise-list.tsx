@@ -9,7 +9,7 @@ import {
   useSensors,
   type DragEndEvent,
 } from "@dnd-kit/core";
-import { restrictToParentElement, restrictToVerticalAxis } from "@dnd-kit/modifiers";
+import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import {
   SortableContext,
   arrayMove,
@@ -69,7 +69,8 @@ export function PremiseList({
       sensors={sensors}
       collisionDetection={closestCenter}
       onDragEnd={handleDragEnd}
-      modifiers={[restrictToVerticalAxis, restrictToParentElement]}
+      // Solo el eje vertical: una premisa nunca se mueve de lado.
+      modifiers={[restrictToVerticalAxis]}
     >
       <SortableContext
         items={premises.map((p) => p.key)}

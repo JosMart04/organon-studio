@@ -30,6 +30,13 @@
 			bind AF_UNIX falla y PipeImpl cae solo al loopback TCP, que es el
 			comportamiento historico.
 		-->
+		<!--
+			Las pruebas etiquetadas como "integracion" exigen un PostgreSQL vivo,
+			asi que quedan fuera de la ejecucion por defecto. Para incluirlas:
+			mvnw test -Dexcluded.test.groups=
+		-->
+		<excluded.test.groups>integracion</excluded.test.groups>
+
 		<organon.uds.tmpdir>${user.home}/.organon-uds</organon.uds.tmpdir>
 		<organon.jvm.args>-Djdk.net.unixdomain.tmpdir=${organon.uds.tmpdir}</organon.jvm.args>
 	</properties>
@@ -105,6 +112,7 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<configuration>
 					<argLine>${organon.jvm.args}</argLine>
+					<excludedGroups>${excluded.test.groups}</excludedGroups>
 				</configuration>
 			</plugin>
 		</plugins>
