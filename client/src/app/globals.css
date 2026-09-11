@@ -139,6 +139,87 @@
     letter-spacing: 0.02em;
     color: var(--color-accent-400);
   }
+
+  /* Un Markdown abierto en el lector: el reset de Tailwind quita títulos y viñetas. */
+  .prose-markdown > :first-child {
+    margin-top: 0;
+  }
+
+  .prose-markdown :where(h1, h2, h3, h4) {
+    margin: 1.6em 0 0.6em;
+    font-family: var(--font-serif);
+    line-height: 1.3;
+    color: var(--color-ink-50);
+  }
+
+  .prose-markdown h1 {
+    font-size: 1.6em;
+  }
+
+  .prose-markdown h2 {
+    font-size: 1.3em;
+  }
+
+  .prose-markdown h3 {
+    font-size: 1.1em;
+  }
+
+  .prose-markdown :where(ul, ol) {
+    margin: 1em 0;
+    padding-left: 1.4em;
+  }
+
+  .prose-markdown ul {
+    list-style: disc;
+  }
+
+  .prose-markdown ol {
+    list-style: decimal;
+  }
+
+  .prose-markdown li + li {
+    margin-top: 0.35em;
+  }
+
+  .prose-markdown blockquote {
+    margin: 1.2em 0;
+    border-left: 2px solid var(--color-ink-700);
+    padding-left: 1em;
+    font-style: italic;
+    color: var(--color-ink-300);
+  }
+
+  .prose-markdown a {
+    color: var(--color-accent-300);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .prose-markdown code {
+    border-radius: 3px;
+    background-color: var(--color-ink-850);
+    padding: 0.1em 0.3em;
+    font-family: var(--font-mono);
+    font-size: 0.85em;
+  }
+
+  .prose-markdown pre {
+    overflow-x: auto;
+    border-radius: 6px;
+    background-color: var(--color-ink-900);
+    padding: 0.8em 1em;
+  }
+
+  .prose-markdown hr {
+    margin: 2em 0;
+    border-color: var(--color-ink-800);
+  }
+}
+
+/* Selección sobre la capa de texto de un PDF: el ámbar del resto de la aplicación
+   en vez del azul de pdf.js. Fuera de las capas para ganar a su hoja de estilos. */
+.lector-pdf .textLayer ::selection {
+  background: rgb(217 154 43 / 0.35);
 }
 
 /* KaTeX hereda el color del contenedor en vez del negro por defecto. */

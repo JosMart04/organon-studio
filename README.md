@@ -14,7 +14,7 @@ quiera curiosear.
 
 | Módulo | Para qué sirve |
 |---|---|
-| **Leer** | El fragmento a la izquierda, lo que vas descubriendo a la derecha. Selecciona una frase y conviértela en nota, o pregunta qué entiende ese autor por una palabra concreta. |
+| **Leer** | El fragmento a la izquierda, lo que vas descubriendo a la derecha. Selecciona una frase y conviértela en nota, o pregunta qué entiende ese autor por una palabra concreta. En la pestaña **Documento** abres el PDF, Markdown o texto que estás leyendo: se queda en tu navegador (no se sube a ningún sitio), recuerda la página y lo que selecciones se guarda con su número de página. |
 | **Desmontar** | Qué sostiene el autor, con qué razones y qué está dando por obvio sin decirlo. Se ordenan arrastrando, y cada crítica se ancla a la razón exacta que falla. |
 | **Palabras** | «Sustancia» no quiere decir lo mismo en Descartes que en Spinoza. Muchas discusiones filosóficas son solo eso. Aquí se ven en columnas. |
 | **El debate** | Quién refuta a quién y quién se apoya en quién, como un mapa navegable que se dibuja con lo que vas anotando. Se guarda entero, con su leyenda, como imagen PNG o como SVG. |

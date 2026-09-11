@@ -34,6 +34,9 @@ yarn-error.log*
 .env*
 !.env.example
 
+# recursos de pdf.js copiados por scripts/copiar-recursos-pdf.mjs
+/public/pdfjs/
+
 # vercel
 .vercel
 

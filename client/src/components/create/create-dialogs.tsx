@@ -291,16 +291,21 @@ export function PassageDialog({
   onClose,
   onCreated,
   defaultWorkId,
+  defaultText,
+  defaultLocator,
 }: {
   open: boolean;
   onClose: () => void;
   onCreated: () => void;
   defaultWorkId?: number;
+  /** Desde el lector de documentos: la frase seleccionada y su página («pág. 42»). */
+  defaultText?: string;
+  defaultLocator?: string;
 }) {
   const works = useAsync(() => corpus.listWorks(), [open], { enabled: open });
   const [workId, setWorkId] = useState<number | "">("");
-  const [text, setText] = useState("");
-  const [locator, setLocator] = useState("");
+  const [text, setText] = useState(defaultText ?? "");
+  const [locator, setLocator] = useState(defaultLocator ?? "");
   const [notes, setNotes] = useState("");
   const { busy, error, enviar } = useEnvio(() => {
     setText("");
@@ -336,7 +341,7 @@ export function PassageDialog({
                   workId: libro!,
                   locator: locator.trim(),
                   textContent: text.trim(),
-                  pageNumber: /^\d+$/.test(locator.trim()) ? Number(locator.trim()) : null,
+                  pageNumber: numeroDePagina(locator),
                   personalNotes: notes.trim() || null,
                 }),
               )
@@ -409,4 +414,10 @@ export function PassageDialog({
       </div>
     </Dialog>
   );
+}
+
+/** «142», «p. 142» o «pág. 142» dan 142. Cualquier otra referencia no lleva número de página. */
+function numeroDePagina(locator: string): number | null {
+  const encontrado = /^(?:p(?:ág|ag)?\.?\s*)?(\d+)$/i.exec(locator.trim());
+  return encontrado ? Number(encontrado[1]) : null;
 }

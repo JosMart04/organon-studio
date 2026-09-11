@@ -170,7 +170,9 @@ que parte la cadena por comas.
 1. Abrir el dominio de Vercel.
 2. Con el cuaderno vacío, crear un pensador y un libro desde **Añadir** en el
    menú lateral. Deben guardarse y aparecer al instante en los desplegables.
-3. Ir a **Leer**: el selector debe listar el libro recién creado.
+3. Ir a **Leer**: el selector debe listar el libro recién creado. En la pestaña
+   **Documento**, abrir un PDF: debe verse y su texto debe poder seleccionarse.
+   El fichero no sale del navegador, así que tampoco depende del backend.
 4. Seleccionar una palabra del texto y pulsar **Ver término**.
 5. Ir a **El debate**: deben aparecer los nodos, y **Imagen PNG** debe descargar
    el mapa completo con su leyenda. La exportación ocurre en el navegador, así
@@ -235,6 +237,7 @@ cd server; .\mvnw.cmd test "-Dexcluded.test.groups="
 | `FATAL: too many connections for role` | Se agotó el pool del tier gratuito | Bajar `DB_POOL_MAX` a `3` |
 | La primera petición tarda un minuto | El servicio gratuito de Render estaba dormido | Es el comportamiento del plan; un plan de pago lo elimina |
 | Un cambio en `NEXT_PUBLIC_API_URL` no surte efecto | Se incrusta en tiempo de build | Volver a desplegar en Vercel |
+| Un PDF escaneado sale en blanco, o la consola pide `wasmUrl` o `standardFontDataUrl` | Faltan los recursos de pdf.js en `public/pdfjs` | Comprobar que Vercel construye con `npm run build`: su `prebuild` los copia desde `pdfjs-dist` |
 | Restaurar responde «Esta copia se hizo con una versión más nueva» | El fichero sale de un despliegue más reciente que el que lo recibe | Desplegar la misma versión en ambos lados y repetir |
 
 ---

@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "predev": "node scripts/copiar-recursos-pdf.mjs",
     "dev": "next dev",
+    "prebuild": "node scripts/copiar-recursos-pdf.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
@@ -21,6 +23,8 @@
     "next": "16.3.4",
     "react": "19.2.8",
     "react-dom": "19.2.8",
+    "react-markdown": "10.1.0",
+    "react-pdf": "11.0.0",
     "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {

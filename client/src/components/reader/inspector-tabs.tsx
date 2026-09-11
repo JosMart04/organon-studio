@@ -83,12 +83,18 @@ export function InspectorTabs({
         {tab === "glosario" && (
           <>
             <p className="text-[11px] leading-relaxed text-ink-500">
-              Qué entiende por estas palabras{" "}
-              <span className="text-ink-300">{work?.philosopherName}</span>. Otros
-              autores usan las mismas con otro sentido.
+              {work ? (
+                <>
+                  Qué entiende por estas palabras{" "}
+                  <span className="text-ink-300">{work.philosopherName}</span>. Otros
+                  autores usan las mismas con otro sentido.
+                </>
+              ) : (
+                "Elige un libro para ver qué entiende su autor por cada palabra."
+              )}
             </p>
             {glossaryLoading && <p className="text-xs text-ink-500">Cargando…</p>}
-            {!glossaryLoading && glossary.length === 0 && (
+            {work && !glossaryLoading && glossary.length === 0 && (
               <EmptyState title="Todavía no has anotado ningún término de este autor." />
             )}
             {glossary.map((definition) => (
