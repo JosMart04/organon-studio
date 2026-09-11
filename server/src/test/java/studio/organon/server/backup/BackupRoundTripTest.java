@@ -35,12 +35,16 @@ import studio.organon.server.domain.logic.ObjectionType;
 import studio.organon.server.domain.logic.Premise;
 import studio.organon.server.domain.logic.PremiseType;
 import studio.organon.server.domain.logic.SoundStatus;
+import studio.organon.server.domain.review.ChallengeKind;
+import studio.organon.server.domain.review.ReviewAttempt;
+import studio.organon.server.domain.review.ReviewRating;
 import studio.organon.server.domain.semantics.SemanticConcept;
 import studio.organon.server.domain.semantics.TermDefinition;
 import studio.organon.server.repository.ArgumentRepository;
 import studio.organon.server.repository.DialecticalRelationRepository;
 import studio.organon.server.repository.PassageRepository;
 import studio.organon.server.repository.PhilosopherRepository;
+import studio.organon.server.repository.ReviewAttemptRepository;
 import studio.organon.server.repository.SemanticConceptRepository;
 import studio.organon.server.repository.TermDefinitionRepository;
 import studio.organon.server.repository.WorkRepository;
@@ -59,7 +63,7 @@ import studio.organon.server.repository.WorkRepository;
  */
 @Tag("integracion")
 @Transactional
-@SpringBootTest(properties = "organon.seed.enabled=false")
+@SpringBootTest(properties = {"organon.seed.enabled=false", "organon.search.reindex-on-startup=false"})
 class BackupRoundTripTest {
 
     @Autowired private BackupService backupService;
@@ -70,6 +74,7 @@ class BackupRoundTripTest {
     @Autowired private TermDefinitionRepository definitions;
     @Autowired private ArgumentRepository arguments;
     @Autowired private DialecticalRelationRepository relations;
+    @Autowired private ReviewAttemptRepository reviews;
 
     @Test
     @DisplayName("Exportar, sustituir y volver a exportar da exactamente el mismo cuaderno")
@@ -83,10 +88,11 @@ class BackupRoundTripTest {
         assertThat(canonical(restaurada)).isEqualTo(canonical(original));
         assertThat(informe.created()).isEqualTo(original.counts());
         assertThat(informe.skipped().values()).allMatch(n -> n == 0);
+        assertThat(original.counts().get(BackupDocument.REVIEWS)).isEqualTo(2);
     }
 
     @Test
-    @DisplayName("Fusionar una copia del propio cuaderno no duplica nada")
+    @DisplayName("Fusionar una copia del propio cuaderno no duplica nada, tampoco los repasos")
     void fusionarNoDuplica() {
         prepararCuaderno();
         BackupDocument original = backupService.export();
@@ -112,9 +118,10 @@ class BackupRoundTripTest {
                 Stream.of(new WorkEntry(999L, senecaRef, null, "De la brevedad de la vida", 49, null, null)))
                 .toList();
         Data data = original.data();
-        BackupDocument ampliada = new BackupDocument(BackupDocument.FORMAT, 1, "2", Instant.now(), Map.of(),
+        BackupDocument ampliada = new BackupDocument(BackupDocument.FORMAT, BackupDocument.CURRENT_VERSION, "4",
+                Instant.now(), Map.of(),
                 new Data(data.philosophers(), conNuevoLibro, data.passages(), data.concepts(),
-                        data.definitions(), data.arguments(), data.relations()));
+                        data.definitions(), data.arguments(), data.relations(), data.reviews()));
 
         ImportReport informe = backupService.importBackup(ampliada, ImportMode.MERGE);
 
@@ -125,13 +132,29 @@ class BackupRoundTripTest {
     }
 
     @Test
+    @DisplayName("Una copia de formato 1, anterior a los repasos, se sigue restaurando")
+    void restauraCopiaDeFormato1() {
+        prepararCuaderno();
+        Data d = backupService.export().data();
+        BackupDocument formato1 = new BackupDocument(BackupDocument.FORMAT, 1, "2", Instant.now(), Map.of(),
+                new Data(d.philosophers(), d.works(), d.passages(), d.concepts(), d.definitions(),
+                        d.arguments(), d.relations(), null));
+
+        ImportReport informe = backupService.importBackup(formato1, ImportMode.REPLACE);
+
+        assertThat(informe.created().get(BackupDocument.ARGUMENTS)).isEqualTo(d.arguments().size());
+        assertThat(informe.created().get(BackupDocument.REVIEWS)).isZero();
+        assertThat(reviews.count()).isZero();
+    }
+
+    @Test
     @DisplayName("Una copia inválida no toca el cuaderno")
     void copiaInvalidaNoTocaNada() {
         prepararCuaderno();
         long antes = philosophers.count();
         BackupDocument rota = new BackupDocument(BackupDocument.FORMAT, 1, "2", Instant.now(), Map.of(),
                 new Data(List.of(), List.of(new WorkEntry(1L, 42L, null, "Huérfano", null, null, null)),
-                        null, null, null, null, null));
+                        null, null, null, null, null, null));
 
         assertThatThrownBy(() -> backupService.importBackup(rota, ImportMode.REPLACE))
                 .isInstanceOf(InvalidBackupException.class);
@@ -144,11 +167,11 @@ class BackupRoundTripTest {
      * Parte de un cuaderno vacío —dentro de la transacción de la prueba— para no
      * depender de lo que haya en la base de desarrollo, y cubre cada tipo y cada
      * caso raro: adversario, definición general y de libro, entimema, crítica,
-     * idea sin fragmento y conexión.
+     * idea sin fragmento, conexión, y un repaso respondido y otro pendiente.
      */
     private void prepararCuaderno() {
-        backupService.importBackup(new BackupDocument(BackupDocument.FORMAT, 1, "2", Instant.now(), Map.of(),
-                new Data(null, null, null, null, null, null, null)), ImportMode.REPLACE);
+        backupService.importBackup(new BackupDocument(BackupDocument.FORMAT, BackupDocument.CURRENT_VERSION, "4",
+                Instant.now(), Map.of(), new Data(null, null, null, null, null, null, null, null)), ImportMode.REPLACE);
 
         Philosopher seneca = new Philosopher("Séneca", Epoch.ANTIGUA, "Estoicismo", "Escribía cartas.");
         seneca.setAvatarEmoji("🏛️");
@@ -184,6 +207,21 @@ class BackupRoundTripTest {
         arguments.save(rival);
 
         relations.save(new DialecticalRelation(rival, idea, RelationType.MATIZA, "Matiza la posesión."));
+
+        ReviewAttempt respondido = new ReviewAttempt(idea, ChallengeKind.SUPUESTO,
+                "¿Por qué da por hecho que poseer es que no te lo quiten?",
+                "Un amigo te regala un libro que luego se pierde.", "Piensa en lo prestado.");
+        respondido.restoreCreatedAt(Instant.parse("2026-09-01T10:00:00Z"));
+        respondido.recordAnswer("Porque confunde poseer con controlar.", ReviewRating.SOLIDA,
+                "Distingues bien los dos sentidos.", "Falta un ejemplo propio.", "¿Y tu propio cuerpo?",
+                Instant.parse("2026-09-01T10:05:00Z"));
+        reviews.save(respondido);
+
+        ReviewAttempt pendiente = new ReviewAttempt(rival, ChallengeKind.CONTRAEJEMPLO,
+                "¿Cómo defenderías la idea ante alguien que no teme a nada?", null, null);
+        pendiente.restoreCreatedAt(Instant.parse("2026-09-02T09:00:00Z"));
+        reviews.save(pendiente);
+
         arguments.flush();
     }
 
@@ -223,6 +261,11 @@ class BackupRoundTripTest {
         out.put("relations", sorted(d.relations().stream().map(r ->
                 String.join("|", ideaPorRef.get(r.sourceArgumentRef()), ideaPorRef.get(r.targetArgumentRef()),
                         String.valueOf(r.relationType()), r.description()))));
+        out.put("reviews", sorted(d.reviews().stream().map(r ->
+                String.join("|", ideaPorRef.get(r.argumentRef()), String.valueOf(r.challengeKind()), r.question(),
+                        r.counterexample(), r.hint(), r.answer(), String.valueOf(r.rating()), r.whatWorked(),
+                        r.whatToImprove(), r.followUpQuestion(), String.valueOf(r.createdAt()),
+                        String.valueOf(r.answeredAt())))));
         return out;
     }
 

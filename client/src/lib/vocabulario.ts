@@ -182,4 +182,5 @@ export const TIPOS_CUADERNO = [
   ["definitions", "Definiciones"],
   ["arguments", "Ideas"],
   ["relations", "Conexiones del debate"],
+  ["reviews", "Repasos"],
 ] as const;

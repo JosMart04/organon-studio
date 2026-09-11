@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   BookOpenText,
   GitBranchPlus,
+  GraduationCap,
   Library,
   Network,
   NotebookPen,
@@ -49,6 +50,12 @@ const NAV = [
     label: "Debate",
     hint: "Quién discute con quién",
     icon: Network,
+  },
+  {
+    href: "/review",
+    label: "Repasar",
+    hint: "Ponte a prueba con tus ideas",
+    icon: GraduationCap,
   },
 ] as const;
 

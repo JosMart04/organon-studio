@@ -32,8 +32,17 @@ public abstract class BaseEntity {
 
     @PrePersist
     void onCreate() {
-        this.createdAt = Instant.now();
-        this.updatedAt = this.createdAt;
+        Instant ahora = Instant.now();
+        // Lo que llega de una copia restaurada trae su fecha original; lo demas nace ahora.
+        if (this.createdAt == null) {
+            this.createdAt = ahora;
+        }
+        this.updatedAt = ahora;
+    }
+
+    /** Solo para restaurar copias, antes de guardar: conserva cuando se creo de verdad. */
+    protected void restoreCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
     }
 
     @PreUpdate

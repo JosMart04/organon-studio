@@ -5,6 +5,7 @@ import static studio.organon.server.backup.BackupValidator.safe;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -27,6 +28,7 @@ import studio.organon.server.backup.BackupDocument.PassageEntry;
 import studio.organon.server.backup.BackupDocument.PhilosopherEntry;
 import studio.organon.server.backup.BackupDocument.PremiseEntry;
 import studio.organon.server.backup.BackupDocument.RelationEntry;
+import studio.organon.server.backup.BackupDocument.ReviewEntry;
 import studio.organon.server.backup.BackupDocument.WorkEntry;
 import studio.organon.server.domain.corpus.Passage;
 import studio.organon.server.domain.corpus.Philosopher;
@@ -38,12 +40,15 @@ import studio.organon.server.domain.logic.Objection;
 import studio.organon.server.domain.logic.Premise;
 import studio.organon.server.domain.logic.PremiseType;
 import studio.organon.server.domain.logic.SoundStatus;
+import studio.organon.server.domain.review.ReviewAttempt;
+import studio.organon.server.domain.review.ReviewRating;
 import studio.organon.server.domain.semantics.SemanticConcept;
 import studio.organon.server.domain.semantics.TermDefinition;
 import studio.organon.server.repository.ArgumentRepository;
 import studio.organon.server.repository.DialecticalRelationRepository;
 import studio.organon.server.repository.PassageRepository;
 import studio.organon.server.repository.PhilosopherRepository;
+import studio.organon.server.repository.ReviewAttemptRepository;
 import studio.organon.server.repository.SemanticConceptRepository;
 import studio.organon.server.repository.TermDefinitionRepository;
 import studio.organon.server.repository.WorkRepository;
@@ -68,7 +73,7 @@ public class BackupService {
      * un vector antiguo apuntaria a otra entrada con el mismo id.
      */
     private static final String TRUNCATE_ALL = """
-            TRUNCATE TABLE dialectical_relation, objection, premise, argument,
+            TRUNCATE TABLE review_attempt, dialectical_relation, objection, premise, argument,
                            term_definition, semantic_concept, passage, work, philosopher,
                            semantic_embedding
             RESTART IDENTITY CASCADE""";
@@ -80,6 +85,7 @@ public class BackupService {
     private final TermDefinitionRepository definitionRepository;
     private final ArgumentRepository argumentRepository;
     private final DialecticalRelationRepository relationRepository;
+    private final ReviewAttemptRepository reviewRepository;
     private final JdbcTemplate jdbc;
 
     @PersistenceContext
@@ -92,6 +98,7 @@ public class BackupService {
                          TermDefinitionRepository definitionRepository,
                          ArgumentRepository argumentRepository,
                          DialecticalRelationRepository relationRepository,
+                         ReviewAttemptRepository reviewRepository,
                          JdbcTemplate jdbc) {
         this.philosopherRepository = philosopherRepository;
         this.workRepository = workRepository;
@@ -100,6 +107,7 @@ public class BackupService {
         this.definitionRepository = definitionRepository;
         this.argumentRepository = argumentRepository;
         this.relationRepository = relationRepository;
+        this.reviewRepository = reviewRepository;
         this.jdbc = jdbc;
     }
 
@@ -143,7 +151,13 @@ public class BackupService {
                         r.getRelationType(), r.getDescription()))
                 .toList();
 
-        Data data = new Data(philosophers, works, passages, concepts, definitions, arguments, relations);
+        List<ReviewEntry> reviews = reviewRepository.findAll(BY_ID).stream()
+                .map(r -> new ReviewEntry(r.getArgument().getId(), r.getChallengeKind(), r.getQuestion(),
+                        r.getCounterexample(), r.getHint(), r.getAnswer(), r.getRating(), r.getWhatWorked(),
+                        r.getWhatToImprove(), r.getFollowUpQuestion(), r.getCreatedAt(), r.getAnsweredAt()))
+                .toList();
+
+        Data data = new Data(philosophers, works, passages, concepts, definitions, arguments, relations, reviews);
         return new BackupDocument(BackupDocument.FORMAT, BackupDocument.CURRENT_VERSION, schemaVersion(),
                 Instant.now(), countsOf(data), data);
     }
@@ -187,6 +201,7 @@ public class BackupService {
         importDefinitions(safe(data.definitions()), concepts, philosophers, works, tally);
         Map<Long, Argument> arguments = importArguments(safe(data.arguments()), works, passages, tally);
         importRelations(safe(data.relations()), arguments, tally, warnings);
+        importReviews(safe(data.reviews()), arguments, tally);
 
         // Flush dentro de la transaccion y a traves de un repositorio: una violacion
         // de restriccion sale aqui traducida a 409, no al hacer commit como un 500.
@@ -385,7 +400,41 @@ public class BackupService {
         }
     }
 
+    /**
+     * Un repaso no tiene clave natural, asi que se identifica por su idea, el
+     * momento en que se creo y su pregunta. Por eso conserva su fecha original al
+     * restaurarse: fusionar dos veces la misma copia no duplica el historial.
+     */
+    private void importReviews(List<ReviewEntry> entries, Map<Long, Argument> arguments, Tally tally) {
+        Map<String, ReviewAttempt> existing = index(reviewRepository.findAll(),
+                r -> reviewKey(r.getArgument().getId(), r.getCreatedAt(), r.getQuestion()));
+        for (ReviewEntry e : entries) {
+            Argument argument = arguments.get(e.argumentRef());
+            Instant createdAt = e.createdAt() == null ? Instant.now() : e.createdAt();
+            String clave = reviewKey(argument.getId(), createdAt, e.question());
+            if (existing.containsKey(clave)) {
+                tally.skip(BackupDocument.REVIEWS);
+                continue;
+            }
+            ReviewAttempt review = new ReviewAttempt(argument, e.challengeKind(), e.question().trim(),
+                    e.counterexample(), e.hint());
+            review.restoreCreatedAt(createdAt);
+            if (e.answer() != null && !e.answer().isBlank()) {
+                review.recordAnswer(e.answer(), e.rating() == null ? ReviewRating.A_MEDIAS : e.rating(),
+                        e.whatWorked(), e.whatToImprove(), e.followUpQuestion(),
+                        e.answeredAt() == null ? createdAt : e.answeredAt());
+            }
+            existing.put(clave, reviewRepository.save(review));
+            tally.create(BackupDocument.REVIEWS);
+        }
+    }
+
     // ----- Utilidades -------------------------------------------------------
+
+    /** Al milisegundo: la base guarda microsegundos y un fichero puede traer mas precision. */
+    private static String reviewKey(Long argumentId, Instant createdAt, String question) {
+        return argumentId + "|" + createdAt.truncatedTo(ChronoUnit.MILLIS) + "|" + key(question);
+    }
 
     static Map<String, Integer> countsOf(Data data) {
         Map<String, Integer> counts = new LinkedHashMap<>();
@@ -396,6 +445,7 @@ public class BackupService {
         counts.put(BackupDocument.DEFINITIONS, safe(data.definitions()).size());
         counts.put(BackupDocument.ARGUMENTS, safe(data.arguments()).size());
         counts.put(BackupDocument.RELATIONS, safe(data.relations()).size());
+        counts.put(BackupDocument.REVIEWS, safe(data.reviews()).size());
         return counts;
     }
 

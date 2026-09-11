@@ -15,6 +15,7 @@ import studio.organon.server.backup.BackupDocument.PassageEntry;
 import studio.organon.server.backup.BackupDocument.PhilosopherEntry;
 import studio.organon.server.backup.BackupDocument.PremiseEntry;
 import studio.organon.server.backup.BackupDocument.RelationEntry;
+import studio.organon.server.backup.BackupDocument.ReviewEntry;
 import studio.organon.server.backup.BackupDocument.WorkEntry;
 
 /**
@@ -68,6 +69,7 @@ public final class BackupValidator {
         checkDefinitions(safe(data.definitions()), concepts, philosophers, works, problems);
         checkArguments(safe(data.arguments()), works, passages, problems);
         checkRelations(safe(data.relations()), arguments, problems);
+        checkReviews(safe(data.reviews()), arguments, problems);
 
         if (!problems.isEmpty()) {
             String summary = problems.size() == 1
@@ -209,6 +211,21 @@ public final class BackupValidator {
                 problems.add("Una conexión del debate une una idea consigo misma.");
             } else if (!triples.add(e.sourceArgumentRef() + "|" + e.targetArgumentRef() + "|" + e.relationType())) {
                 problems.add("Hay una conexión del debate repetida.");
+            }
+        }
+    }
+
+    private static void checkReviews(List<ReviewEntry> entries, Set<Long> arguments, List<String> problems) {
+        for (ReviewEntry e : entries) {
+            if (!arguments.contains(e.argumentRef())) {
+                problems.add("Un repaso apunta a una idea que no está en la copia.");
+                continue;
+            }
+            if (e.challengeKind() == null || blank(e.question())) {
+                problems.add("Hay un repaso sin pregunta.");
+            }
+            if (e.rating() != null && blank(e.answer())) {
+                problems.add("Hay un repaso con valoración pero sin respuesta.");
             }
         }
     }

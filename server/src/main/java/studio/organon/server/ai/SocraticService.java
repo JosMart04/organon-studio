@@ -9,14 +9,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
+import studio.organon.server.ai.dto.Challenge;
+import studio.organon.server.ai.dto.ChallengeDraft;
+import studio.organon.server.ai.dto.Evaluation;
+import studio.organon.server.ai.dto.EvaluationDraft;
 import studio.organon.server.ai.dto.ExplainRequest;
 import studio.organon.server.ai.dto.ExplainResponse;
 import studio.organon.server.ai.dto.ExtractIdeasRequest;
 import studio.organon.server.ai.dto.ExtractedIdeas;
 import studio.organon.server.ai.dto.FindRivalsRequest;
+import studio.organon.server.ai.dto.ReviewSubject;
 import studio.organon.server.ai.dto.RivalSuggestion;
 import studio.organon.server.ai.dto.RivalSuggestions;
 import studio.organon.server.domain.dialectic.RelationType;
+import studio.organon.server.domain.review.ChallengeKind;
+import studio.organon.server.domain.review.ReviewRating;
 import studio.organon.server.repository.PhilosopherRepository;
 
 /**
@@ -187,7 +194,139 @@ public class SocraticService {
         return new RivalSuggestions(validate(raw.suggestions()));
     }
 
+    // ----- Desafíame --------------------------------------------------------
+
+    /**
+     * Prepara un desafío para comprobar si el lector ha entendido una idea. No
+     * se la explica: le hace pensar en su punto débil. Quien guarda el intento
+     * es el servicio de repaso; esta clase sigue sin escribir en la base.
+     */
+    public Challenge challenge(ReviewSubject idea) {
+        availability.requireAvailable();
+
+        boolean sobreSupuesto = !blank(idea.focusAssumption());
+        String queHacerConLaPregunta = sobreSupuesto
+                ? "una pregunta directa sobre el supuesto implícito «" + idea.focusAssumption()
+                        + "»: por qué el autor lo da por hecho y qué le pasaría a la idea si fuera falso."
+                : "una pregunta que obligue al lector a explicar, con sus palabras, cómo defendería la "
+                        + "conclusión frente al contraejemplo.";
+
+        String user = """
+                Vas a comprobar si un lector ha entendido de verdad una idea filosófica.
+                No se la expliques ni le des la respuesta: hazle pensar.
+
+                %s
+
+                La idea: «%s»
+                Sus razones:
+                %s
+                Conclusión: %s
+
+                Devuelve:
+                - question: %s Una sola pregunta, clara, dirigida al lector de tú.
+                - counterexample: un caso hipotético y concreto, de dos o tres frases, que parezca
+                  poner en aprietos la conclusión y que el lector tenga que rebatir o conceder. Nada
+                  que exija conocer datos históricos.
+                - hint: una pista breve que oriente sin resolver.
+                """.formatted(context(idea.author(), idea.workTitle()), idea.name(), numerar(idea.reasons()),
+                idea.conclusion(), queHacerConLaPregunta);
+
+        ChallengeDraft borrador = generate(
+                () -> chatClient.prompt().system(VOICE).user(user).call().entity(ChallengeDraft.class),
+                "No he podido preparar el desafío");
+
+        if (borrador == null || blank(borrador.question())) {
+            throw new AiUnavailableException(
+                    "El modelo no ha conseguido formular una pregunta. Vuelve a intentarlo.");
+        }
+        return new Challenge(
+                sobreSupuesto ? ChallengeKind.SUPUESTO : ChallengeKind.CONTRAEJEMPLO,
+                borrador.question().trim(),
+                trimOrNull(borrador.counterexample()),
+                trimOrNull(borrador.hint()));
+    }
+
+    /**
+     * Valora la respuesta del lector. Mide la solidez de su razonamiento, no si
+     * coincide con el autor, y nunca le regaña.
+     */
+    public Evaluation evaluate(ReviewSubject idea, String question, String counterexample, String answer) {
+        availability.requireAvailable();
+
+        String user = """
+                Valora la respuesta de un lector a un desafío sobre una idea filosófica.
+
+                Lo que valoras es la solidez de su razonamiento, no si está de acuerdo con el autor.
+                Discrepar del autor con buenas razones es una respuesta sólida; repetir la conclusión
+                sin justificarla no lo es. Escríbele de tú, con respeto y sin regañar.
+
+                %s
+
+                La idea: «%s»
+                Sus razones:
+                %s
+                Conclusión: %s
+
+                La pregunta que se le hizo: %s
+                %s
+
+                Su respuesta:
+                ---
+                %s
+                ---
+
+                Devuelve:
+                - rating: exactamente una de estas palabras, sin variarla: SOLIDA (responde a lo que se
+                  le pregunta y lo justifica bien), A_MEDIAS (va bien encaminado pero deja algo sin
+                  justificar), FLOJA (no responde a la pregunta o no da razones).
+                - whatWorked: una o dos frases sobre lo que está bien razonado. Si no hay nada,
+                  reconoce el intento sin inventar méritos.
+                - whatToImprove: una o dos frases concretas sobre qué falta o qué revisar.
+                - followUpQuestion: una pregunta breve para seguir pensando.
+                """.formatted(context(idea.author(), idea.workTitle()), idea.name(), numerar(idea.reasons()),
+                idea.conclusion(), question,
+                blank(counterexample) ? "" : "El contraejemplo que se le propuso: " + counterexample,
+                answer);
+
+        EvaluationDraft borrador = generate(
+                () -> chatClient.prompt().system(VOICE).user(user).call().entity(EvaluationDraft.class),
+                "No he podido valorar tu respuesta");
+
+        if (borrador == null || (blank(borrador.whatWorked()) && blank(borrador.whatToImprove()))) {
+            throw new AiUnavailableException(
+                    "El modelo no ha devuelto ninguna valoración. Tu respuesta no se ha perdido: vuelve a enviarla.");
+        }
+        ReviewRating rating = ReviewRating.fromModel(borrador.rating());
+        if (!rating.name().equalsIgnoreCase(String.valueOf(borrador.rating()).strip())) {
+            log.debug("Valoración del modelo normalizada: {} -> {}", borrador.rating(), rating);
+        }
+        return new Evaluation(
+                rating,
+                borrador.whatWorked() == null ? "" : borrador.whatWorked().trim(),
+                borrador.whatToImprove() == null ? "" : borrador.whatToImprove().trim(),
+                trimOrNull(borrador.followUpQuestion()));
+    }
+
     // ----- Utilidades ------------------------------------------------------
+
+    private static String numerar(List<String> razones) {
+        if (razones == null || razones.isEmpty()) {
+            return "(sin razones anotadas)";
+        }
+        StringBuilder texto = new StringBuilder();
+        for (int i = 0; i < razones.size(); i++) {
+            texto.append(i + 1).append(". ").append(razones.get(i)).append('\n');
+        }
+        return texto.toString().stripTrailing();
+    }
+
+    private static boolean blank(String value) {
+        return value == null || value.isBlank();
+    }
+
+    private static String trimOrNull(String value) {
+        return blank(value) ? null : value.trim();
+    }
 
     /**
      * Traduce cualquier tropiezo del modelo a algo que el lector pueda leer.

@@ -21,6 +21,9 @@ import type {
   Premise,
   PremiseRequest,
   ResolvedTerm,
+  ReviewAttempt,
+  ReviewCard,
+  ReviewProgress,
   RivalSuggestions,
   SearchIndexStatus,
   SearchResponse,
@@ -279,4 +282,26 @@ export const search = {
   status: () => request<SearchIndexStatus>("/search/status"),
 
   reindex: () => request<SearchIndexStatus>("/search/reindex", { method: "POST" }),
+};
+
+// ---------------------------------------------------------------------------
+// Repaso
+// ---------------------------------------------------------------------------
+
+export const review = {
+  /** Una idea concreta o la que toca repasar. Sin ideas que repasar responde 204: `undefined`. */
+  next: (params: { argumentId?: number; workId?: number; after?: number }) =>
+    request<ReviewCard | undefined>("/review/next", { query: params }),
+
+  history: (argumentId: number) =>
+    request<ReviewAttempt[]>("/review/history", { query: { argumentId } }),
+
+  progress: () => request<ReviewProgress>("/review/progress"),
+
+  /** El modelo local prepara el desafío: puede tardar. Con el asistente apagado, 503 con el motivo. */
+  challenge: (body: { argumentId?: number; workId?: number }) =>
+    request<ReviewAttempt>("/ai/challenge", { method: "POST", ...json(body) }),
+
+  answer: (attemptId: number, answer: string) =>
+    request<ReviewAttempt>(`/ai/challenge/${attemptId}/answer`, { method: "POST", ...json({ answer }) }),
 };

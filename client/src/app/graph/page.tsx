@@ -373,7 +373,7 @@ function TarjetaNodo({
         )}
 
         {argumentId && (
-          <div className="border-t border-ink-800 pt-3">
+          <div className="flex flex-wrap gap-2 border-t border-ink-800 pt-3">
             <Link
               href={`/arguments/builder?argumentId=${argumentId}`}
               className={cn(
@@ -382,6 +382,16 @@ function TarjetaNodo({
               )}
             >
               Ver sus razones →
+            </Link>
+            <Link
+              href={`/review?argumentId=${argumentId}`}
+              title="Comprueba si la has entendido: el asistente te hace una pregunta difícil"
+              className={cn(
+                "inline-block rounded border border-accent-500/40 bg-accent-900/60 px-2.5 py-1 text-[11px] text-accent-300",
+                "transition-colors hover:bg-accent-500/25",
+              )}
+            >
+              Desafíame
             </Link>
           </div>
         )}

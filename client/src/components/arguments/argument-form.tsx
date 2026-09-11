@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { Download, FileCheck2, Plus, Save, Stethoscope } from "lucide-react";
+import Link from "next/link";
+import { Download, FileCheck2, GraduationCap, Plus, Save, Stethoscope } from "lucide-react";
 import { argumentsApi, corpus, exports } from "@/lib/api";
 import { useAsync } from "@/lib/use-async";
 import { cn } from "@/lib/cn";
@@ -224,6 +225,16 @@ export function ArgumentForm({
           <>
             {saved && <SoundStatusBadge status={saved.soundStatus} />}
             <SocraticButton onClick={() => setAsistenteAbierto(true)} />
+            {argumentId && (
+              <Link
+                href={`/review?argumentId=${argumentId}`}
+                title="Comprueba si has entendido esta idea: el asistente te hace una pregunta difícil"
+                className="inline-flex items-center gap-1.5 rounded border border-ink-700 bg-ink-800 px-3 py-1.5 text-xs font-medium text-ink-200 transition-colors hover:bg-ink-700 hover:text-ink-50"
+              >
+                <GraduationCap className="size-3.5" />
+                Desafíame
+              </Link>
+            )}
             <Button variant="primary" onClick={save} disabled={!canSave || busy !== null}>
               <Save className="size-3.5" />
               {busy === "save" ? "Guardando…" : argumentId ? "Guardar cambios" : "Crear"}

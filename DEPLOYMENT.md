@@ -181,9 +181,12 @@ que parte la cadena por comas.
    romper nada. Lo mismo con **Buscar** (Ctrl+K): la pestaña por palabras debe
    encontrar al pensador del paso 2, y la de significado avisar de que en
    producción solo se busca por palabras, porque Ollama no corre en Render.
-7. Abrir **Ajustes** (engranaje al pie del menú) y pulsar **Descargar copia de
+7. En **Repasar** debe verse la tarjeta de una idea con sus razones, y
+   «Desafíame» aparecer desactivado con el mismo aviso: el desafío lo genera
+   Ollama, que solo corre en el ordenador del lector.
+8. Abrir **Ajustes** (engranaje al pie del menú) y pulsar **Descargar copia de
    seguridad**: debe bajar un fichero `organon-copia-….json`.
-8. En la consola del navegador no debe haber errores de CORS.
+9. En la consola del navegador no debe haber errores de CORS.
 
 Si los paneles salen vacíos y la consola muestra
 `No 'Access-Control-Allow-Origin' header`, es el paso 4.

@@ -9,6 +9,8 @@ import studio.organon.server.domain.logic.FormalScheme;
 import studio.organon.server.domain.logic.ObjectionType;
 import studio.organon.server.domain.logic.PremiseType;
 import studio.organon.server.domain.logic.SoundStatus;
+import studio.organon.server.domain.review.ChallengeKind;
+import studio.organon.server.domain.review.ReviewRating;
 
 /**
  * Copia de seguridad portable del cuaderno completo.
@@ -30,7 +32,12 @@ public record BackupDocument(
         Data data) {
 
     public static final String FORMAT = "organon-backup";
-    public static final int CURRENT_VERSION = 1;
+
+    /**
+     * 1: el cuaderno. 2: anade los repasos. Una copia de formato 1 se sigue
+     * restaurando igual; simplemente no trae repasos.
+     */
+    public static final int CURRENT_VERSION = 2;
 
     public static final String PHILOSOPHERS = "philosophers";
     public static final String WORKS = "works";
@@ -39,11 +46,13 @@ public record BackupDocument(
     public static final String DEFINITIONS = "definitions";
     public static final String ARGUMENTS = "arguments";
     public static final String RELATIONS = "relations";
+    public static final String REVIEWS = "reviews";
 
     /** Orden de restauracion: cada tipo solo apunta a tipos anteriores. */
     public static final List<String> TYPES =
-            List.of(PHILOSOPHERS, WORKS, PASSAGES, CONCEPTS, DEFINITIONS, ARGUMENTS, RELATIONS);
+            List.of(PHILOSOPHERS, WORKS, PASSAGES, CONCEPTS, DEFINITIONS, ARGUMENTS, RELATIONS, REVIEWS);
 
+    /** {@code reviews} es nulo en las copias de formato 1. */
     public record Data(
             List<PhilosopherEntry> philosophers,
             List<WorkEntry> works,
@@ -51,7 +60,8 @@ public record BackupDocument(
             List<ConceptEntry> concepts,
             List<DefinitionEntry> definitions,
             List<ArgumentEntry> arguments,
-            List<RelationEntry> relations) {
+            List<RelationEntry> relations,
+            List<ReviewEntry> reviews) {
     }
 
     public record PhilosopherEntry(
@@ -128,5 +138,24 @@ public record BackupDocument(
             Long targetArgumentRef,
             RelationType relationType,
             String description) {
+    }
+
+    /**
+     * Un repaso, con sus fechas originales: de ellas dependen el historial y el
+     * progreso. Sin {@code ref}, como las razones: nada apunta a un repaso.
+     */
+    public record ReviewEntry(
+            Long argumentRef,
+            ChallengeKind challengeKind,
+            String question,
+            String counterexample,
+            String hint,
+            String answer,
+            ReviewRating rating,
+            String whatWorked,
+            String whatToImprove,
+            String followUpQuestion,
+            Instant createdAt,
+            Instant answeredAt) {
     }
 }

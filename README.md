@@ -19,6 +19,7 @@ quiera curiosear.
 | **Buscar** | Ctrl+K desde cualquier pantalla. Por palabras, al instante y sin preocuparse de las tildes («razon» encuentra «razón»); o por significado, con un modelo que corre en tu ordenador: «lo efímero de la existencia» encuentra la carta de Séneca sobre el tiempo sin compartir una sola palabra. |
 | **Palabras** | «Sustancia» no quiere decir lo mismo en Descartes que en Spinoza. Muchas discusiones filosóficas son solo eso. Aquí se ven en columnas. |
 | **El debate** | Quién refuta a quién y quién se apoya en quién, como un mapa navegable que se dibuja con lo que vas anotando. Se guarda entero, con su leyenda, como imagen PNG o como SVG. |
+| **Repasar** | Anotar no es entender. El asistente te pregunta por lo que una idea tuya da por supuesto, te propone un caso que la pone en aprietos y valora cómo razonas, no si coincides con el autor. Guarda el historial, así que vuelve antes sobre lo que te salió flojo. |
 | **Asistente** | Un modelo que corre en tu propio ordenador: explica un pasaje denso, propone cómo desmontarlo y sugiere quién le llevaría la contraria. Opcional. |
 | **Exportación** | Tus notas a Markdown (Obsidian) y, si te hace falta, bloques LaTeX para un trabajo. |
 | **Copia de seguridad** | Todo el cuaderno en un único fichero `.json`, desde **Ajustes** (el engranaje al pie del menú). Se restaura fusionando con lo que ya tienes, sin duplicar, o sustituyéndolo entero. Antes de restaurar ves qué contiene, y si el fichero tiene algún problema no se toca nada. |

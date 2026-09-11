@@ -222,6 +222,37 @@
   background: rgb(217 154 43 / 0.35);
 }
 
+/* Tarjeta de repaso: las dos caras ocupan la misma celda de la rejilla, así
+   que la tarjeta mide lo que la más alta y al darse la vuelta no salta. */
+.tarjeta-repaso {
+  perspective: 1600px;
+}
+
+.tarjeta-repaso__cuerpo {
+  display: grid;
+  transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.tarjeta-repaso__cuerpo[data-volteada="true"] {
+  transform: rotateY(180deg);
+}
+
+.tarjeta-repaso__cara {
+  grid-area: 1 / 1;
+  backface-visibility: hidden;
+}
+
+.tarjeta-repaso__cara--dorso {
+  transform: rotateY(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tarjeta-repaso__cuerpo {
+    transition: none;
+  }
+}
+
 /* KaTeX hereda el color del contenedor en vez del negro por defecto. */
 .katex {
   color: inherit;

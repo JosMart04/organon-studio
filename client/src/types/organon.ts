@@ -346,6 +346,8 @@ export interface BackupDocument {
     definitions?: unknown[];
     arguments?: unknown[];
     relations?: unknown[];
+    /** Desde el formato 2. */
+    reviews?: unknown[];
   };
 }
 
@@ -398,4 +400,53 @@ export interface SearchIndexStatus {
   model: string;
   available: boolean;
   message: string | null;
+}
+
+// ---------------------------------------------------------------------------
+// Repaso
+// ---------------------------------------------------------------------------
+
+/** Solidez del razonamiento del lector, no si coincide con el autor. */
+export type ReviewRating = "SOLIDA" | "A_MEDIAS" | "FLOJA";
+
+/** Sobre un supuesto implícito de la idea, o un caso que la pone en aprietos. */
+export type ChallengeKind = "SUPUESTO" | "CONTRAEJEMPLO";
+
+export interface ReviewCard {
+  argumentId: number;
+  name: string;
+  workId: number;
+  workTitle: string;
+  author: string;
+  avatarEmoji: string | null;
+  conclusion: string;
+  /** Las razones en orden, sin la conclusión. */
+  reasons: string[];
+  /** Cuántas de esas razones son supuestos implícitos. */
+  assumptions: number;
+  attempts: number;
+  lastRating: ReviewRating | null;
+  lastReviewedAt: string | null;
+}
+
+export interface ReviewAttempt {
+  id: number;
+  argumentId: number;
+  kind: ChallengeKind;
+  question: string;
+  counterexample: string | null;
+  hint: string | null;
+  answer: string | null;
+  rating: ReviewRating | null;
+  whatWorked: string | null;
+  whatToImprove: string | null;
+  followUpQuestion: string | null;
+  createdAt: string;
+  answeredAt: string | null;
+}
+
+export interface ReviewProgress {
+  reviewedThisWeek: number;
+  neverReviewed: number;
+  reviewable: number;
 }
