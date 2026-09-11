@@ -55,6 +55,11 @@ spring:
           model: ${OLLAMA_MODEL:gemma4:12b}
           # Analisis, no prosa creativa: interesa que el desglose sea estable.
           temperature: 0.3
+      embedding:
+        # Multilingue y pequeno (622 MB). Solo se usa si esta descargado
+        # (`ollama pull embeddinggemma`); sin el, se busca solo por palabras.
+        # En Spring AI 2 va sin "options.": esa forma esta obsoleta.
+        model: ${OLLAMA_EMBEDDING_MODEL:embeddinggemma}
 
 server:
   port: ${SERVER_PORT:8080}
@@ -79,6 +84,14 @@ organon:
     # Apagada por defecto: el cuaderno se llena leyendo, no arrancando. Para
     # recuperar el debate de ejemplo, ORGANON_SEED_ENABLED=true (es idempotente).
     enabled: ${ORGANON_SEED_ENABLED:false}
+  search:
+    # Al arrancar se indexa por significado lo que falte, en segundo plano.
+    reindex-on-startup: ${ORGANON_SEARCH_REINDEX_ON_STARTUP:true}
+    # Calibrado con embeddinggemma y sus prefijos sobre notas en espanol: lo
+    # relevante quedaba entre 0,21 y 0,45, y lo ajeno por debajo de 0,17. El
+    # corte relativo descarta lo que no llega a la mitad del mejor resultado.
+    min-similarity: 0.2
+    relative-similarity: 0.5
 
 logging:
   level:

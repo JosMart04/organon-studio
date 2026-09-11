@@ -34,15 +34,27 @@ export default function ReaderPage() {
   // ruta prerenderizada.
   return (
     <Suspense fallback={<p className="p-6 text-sm text-ink-500">Cargando…</p>}>
-      <Lector />
+      <LectorEnDestino />
     </Suspense>
   );
+}
+
+/**
+ * Llegar desde la búsqueda a otro libro o fragmento vuelve a montar el lector:
+ * así parte de ese destino y no de lo que se hubiera elegido antes a mano.
+ * Cambiar de pestaña o de documento no toca la clave y conserva el estado.
+ */
+function LectorEnDestino() {
+  const searchParams = useSearchParams();
+  return <Lector key={`${searchParams.get("workId")}:${searchParams.get("passageId")}`} />;
 }
 
 function Lector() {
   const searchParams = useSearchParams();
   const vista: Vista = searchParams.get("vista") === "documento" ? "documento" : "notas";
   const documentoId = searchParams.get("doc") ?? undefined;
+  const workIdDestino = entero(searchParams.get("workId"));
+  const passageIdDestino = entero(searchParams.get("passageId"));
 
   const [asistenteAbierto, setAsistenteAbierto] = useState(false);
   const [textoAsistente, setTextoAsistente] = useState<string>();
@@ -56,13 +68,13 @@ function Lector() {
   // guardarlos en un solo estado lo consigue sin un efecto que los sincronice.
   const [picked, setPicked] = useState<{ workId: number; index: number }>();
 
-  // Mientras el usuario no elija, manda el libro del documento abierto y, si no
-  // hay, el primero del catálogo.
+  // Mientras el usuario no elija, manda el libro del documento abierto, luego el
+  // que indique la URL (se llega así desde la búsqueda) y, si no, el primero.
   const workId =
     picked?.workId ??
     (vista === "documento" ? activo.documento?.workId : undefined) ??
+    workIdDestino ??
     works.data?.[0]?.id;
-  const passageIndex = picked?.index ?? 0;
 
   const activeWork = useMemo(
     () => works.data?.find((w) => w.id === workId),
@@ -72,6 +84,12 @@ function Lector() {
   const passages = useAsync(() => corpus.listPassages(workId!), [workId, corpusVersion], {
     enabled: workId !== undefined,
   });
+
+  const indiceDestino =
+    passageIdDestino === undefined
+      ? -1
+      : (passages.data?.findIndex((p) => p.id === passageIdDestino) ?? -1);
+  const passageIndex = picked?.index ?? Math.max(indiceDestino, 0);
 
   const passage = passages.data?.[passageIndex];
 
@@ -236,6 +254,11 @@ function Lector() {
       )}
     </div>
   );
+}
+
+function entero(valor: string | null): number | undefined {
+  const numero = Number(valor);
+  return valor && Number.isInteger(numero) ? numero : undefined;
 }
 
 const PESTANAS: { id: Vista; label: string; icon: typeof Quote }[] = [

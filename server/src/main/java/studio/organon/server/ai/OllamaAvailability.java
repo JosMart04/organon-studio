@@ -91,6 +91,23 @@ public class OllamaAvailability {
         }
     }
 
+    /** Si Ollama responde. Distingue «apagado» de «encendido pero sin el modelo». */
+    public boolean isRunning() {
+        return featureEnabled && installedModels() != null;
+    }
+
+    /**
+     * El modelo de chat y el de embeddings se descargan por separado: puede estar
+     * uno y faltar el otro.
+     */
+    public boolean isModelInstalled(String model) {
+        if (!featureEnabled) {
+            return false;
+        }
+        List<String> models = installedModels();
+        return models != null && models.stream().anyMatch(m -> matches(m, model));
+    }
+
     /** @return la lista de modelos, o {@code null} si Ollama no responde. */
     private List<String> installedModels() {
         Snapshot snapshot = cached;

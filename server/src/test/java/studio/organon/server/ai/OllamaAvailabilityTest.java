@@ -57,6 +57,15 @@ class OllamaAvailabilityTest {
     }
 
     @Test
+    @DisplayName("Con Ollama apagado ni esta en marcha ni tiene ningun modelo")
+    void apagadoSinModelos() {
+        OllamaAvailability availability = new OllamaAvailability(PUERTO_CERRADO, "gemma4:12b", true);
+
+        assertThat(availability.isRunning()).isFalse();
+        assertThat(availability.isModelInstalled("embeddinggemma")).isFalse();
+    }
+
+    @Test
     @DisplayName("El estado nunca lanza: la interfaz siempre puede preguntar")
     void statusNuncaLanza() {
         OllamaAvailability availability = new OllamaAvailability("no-es-una-url", "gemma4:12b", true);

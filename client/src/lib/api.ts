@@ -22,6 +22,9 @@ import type {
   PremiseRequest,
   ResolvedTerm,
   RivalSuggestions,
+  SearchIndexStatus,
+  SearchResponse,
+  SearchResult,
   SemanticConcept,
   TermDefinition,
   Work,
@@ -258,4 +261,22 @@ export const backup = {
   /** El texto viaja tal cual se leyó del fichero, sin volver a serializarlo. */
   restore: (mode: ImportMode, rawJson: string) =>
     request<ImportReport>("/backup/import", { method: "POST", body: rawJson, query: { mode } }),
+};
+
+// ---------------------------------------------------------------------------
+// Búsqueda
+// ---------------------------------------------------------------------------
+
+export const search = {
+  /** Por palabras: instantánea y sin Ollama. Pensada para llamarse mientras se escribe. */
+  text: (q: string, limit?: number) =>
+    request<SearchResult[]>("/search/text", { query: { q, limit } }),
+
+  /** Palabras y significado. Por POST: la consulta es una frase y no debe quedar en los logs. */
+  semantic: (query: string, limit?: number) =>
+    request<SearchResponse>("/search/semantic", { method: "POST", ...json({ query, limit }) }),
+
+  status: () => request<SearchIndexStatus>("/search/status"),
+
+  reindex: () => request<SearchIndexStatus>("/search/reindex", { method: "POST" }),
 };

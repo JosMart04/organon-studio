@@ -63,10 +63,14 @@ public class BackupService {
     /**
      * Transaccional en PostgreSQL, igual que el reinicio de las identidades: si
      * algo falla despues, el rollback devuelve los datos.
+     *
+     * <p>Los vectores de busqueda van tambien: con las identidades reiniciadas,
+     * un vector antiguo apuntaria a otra entrada con el mismo id.
      */
     private static final String TRUNCATE_ALL = """
             TRUNCATE TABLE dialectical_relation, objection, premise, argument,
-                           term_definition, semantic_concept, passage, work, philosopher
+                           term_definition, semantic_concept, passage, work, philosopher,
+                           semantic_embedding
             RESTART IDENTITY CASCADE""";
 
     private final PhilosopherRepository philosopherRepository;

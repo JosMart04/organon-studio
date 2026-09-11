@@ -1,6 +1,7 @@
 package studio.organon.server.domain;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -16,6 +17,7 @@ import java.util.Objects;
  * (aun no guardadas) nunca son iguales entre si.
  */
 @MappedSuperclass
+@EntityListeners(NotebookChangeListener.class)
 public abstract class BaseEntity {
 
     @Id

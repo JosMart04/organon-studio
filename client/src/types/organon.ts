@@ -357,3 +357,45 @@ export interface ImportReport {
   skipped: Record<string, number>;
   warnings: string[];
 }
+
+// ---------------------------------------------------------------------------
+// Búsqueda
+// ---------------------------------------------------------------------------
+
+export type SearchHitType = "PASSAGE" | "ARGUMENT" | "PHILOSOPHER" | "DEFINITION";
+
+/** Por qué ha salido un resultado: por compartir palabras, por parecerse en significado, o por las dos. */
+export type MatchSource = "TEXTO" | "SIGNIFICADO";
+
+export interface SearchResult {
+  type: SearchHitType;
+  id: number;
+  title: string;
+  /** Si salió por palabras, las coincidencias vienen entre ⟦ y ⟧. */
+  snippet: string;
+  /** En un pensador, el primero de sus libros. */
+  workId: number | null;
+  workTitle: string | null;
+  author: string | null;
+  /** Solo en las definiciones: la palabra del glosario. */
+  conceptId: number | null;
+  /** De 0 a 1, relativa al mejor resultado de la misma búsqueda. */
+  relevance: number;
+  matchedBy: MatchSource[];
+}
+
+export interface SearchResponse {
+  mode: "HIBRIDA" | "SOLO_TEXTO";
+  results: SearchResult[];
+  /** Notas que aún no tienen vector: pueden faltar al buscar por significado. */
+  pending: number;
+  notice: string | null;
+}
+
+export interface SearchIndexStatus {
+  indexed: number;
+  pending: number;
+  model: string;
+  available: boolean;
+  message: string | null;
+}

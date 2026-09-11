@@ -2,6 +2,7 @@ package studio.organon.server;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -37,6 +38,32 @@ class SchemaIntegrationTest {
         Integer migraciones = jdbc.queryForObject(
                 "SELECT count(*) FROM flyway_schema_history WHERE success", Integer.class);
         assertThat(migraciones).isPositive();
+    }
+
+    @Test
+    @DisplayName("La busqueda en espanol ignora las tildes")
+    void busquedaSinTildes() {
+        Boolean coincide = jdbc.queryForObject(
+                "SELECT to_tsvector('es_organon', 'La razón pura') @@ to_tsquery('es_organon', 'razon')",
+                Boolean.class);
+        assertThat(coincide).isTrue();
+    }
+
+    @Test
+    @DisplayName("Las columnas de busqueda son generadas y existe la tabla de vectores")
+    void columnasDeBusqueda() {
+        List<String> tablas = jdbc.queryForList("""
+                SELECT table_name FROM information_schema.columns
+                WHERE table_schema = 'public' AND column_name = 'search_vector' AND is_generated = 'ALWAYS'
+                ORDER BY table_name
+                """, String.class);
+        assertThat(tablas).containsExactly(
+                "argument", "passage", "philosopher", "premise", "semantic_concept", "term_definition");
+
+        Integer vectores = jdbc.queryForObject(
+                "SELECT count(*) FROM information_schema.tables WHERE table_name = 'semantic_embedding'",
+                Integer.class);
+        assertThat(vectores).isOne();
     }
 
     @Test

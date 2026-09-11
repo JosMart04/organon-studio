@@ -178,7 +178,9 @@ que parte la cadena por comas.
    el mapa completo con su leyenda. La exportación ocurre en el navegador, así
    que no depende del backend.
 6. Abrir el **Asistente**: en producción debe decir que está desactivado, sin
-   romper nada.
+   romper nada. Lo mismo con **Buscar** (Ctrl+K): la pestaña por palabras debe
+   encontrar al pensador del paso 2, y la de significado avisar de que en
+   producción solo se busca por palabras, porque Ollama no corre en Render.
 7. Abrir **Ajustes** (engranaje al pie del menú) y pulsar **Descargar copia de
    seguridad**: debe bajar un fichero `organon-copia-….json`.
 8. En la consola del navegador no debe haber errores de CORS.
@@ -233,6 +235,7 @@ cd server; .\mvnw.cmd test "-Dexcluded.test.groups="
 |---|---|---|
 | `No suitable driver found for postgres://…` | `DATABASE_URL` llegó al datasource sin traducir | Comprobar que `SPRING_PROFILES_ACTIVE=prod` y que se arranca por `main` (no por un runner propio) |
 | `Schema-validation: missing table [philosopher]` | Flyway no llegó a migrar | Revisar los logs de arranque; suele ser que el usuario de la base no tiene permiso de `CREATE` |
+| `permission denied to create extension "unaccent"` | La migración de la búsqueda la crea, y el usuario no tiene permiso | En Neon y Supabase el propietario de la base puede. Si no, ejecutar una vez `CREATE EXTENSION unaccent;` desde su consola SQL y volver a desplegar |
 | La interfaz carga pero todo sale vacío | CORS | Paso 4 |
 | `FATAL: too many connections for role` | Se agotó el pool del tier gratuito | Bajar `DB_POOL_MAX` a `3` |
 | La primera petición tarda un minuto | El servicio gratuito de Render estaba dormido | Es el comportamiento del plan; un plan de pago lo elimina |

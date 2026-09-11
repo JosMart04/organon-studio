@@ -16,6 +16,7 @@ quiera curiosear.
 |---|---|
 | **Leer** | El fragmento a la izquierda, lo que vas descubriendo a la derecha. Selecciona una frase y conviértela en nota, o pregunta qué entiende ese autor por una palabra concreta. En la pestaña **Documento** abres el PDF, Markdown o texto que estás leyendo: se queda en tu navegador (no se sube a ningún sitio), recuerda la página y lo que selecciones se guarda con su número de página. |
 | **Desmontar** | Qué sostiene el autor, con qué razones y qué está dando por obvio sin decirlo. Se ordenan arrastrando, y cada crítica se ancla a la razón exacta que falla. |
+| **Buscar** | Ctrl+K desde cualquier pantalla. Por palabras, al instante y sin preocuparse de las tildes («razon» encuentra «razón»); o por significado, con un modelo que corre en tu ordenador: «lo efímero de la existencia» encuentra la carta de Séneca sobre el tiempo sin compartir una sola palabra. |
 | **Palabras** | «Sustancia» no quiere decir lo mismo en Descartes que en Spinoza. Muchas discusiones filosóficas son solo eso. Aquí se ven en columnas. |
 | **El debate** | Quién refuta a quién y quién se apoya en quién, como un mapa navegable que se dibuja con lo que vas anotando. Se guarda entero, con su leyenda, como imagen PNG o como SVG. |
 | **Asistente** | Un modelo que corre en tu propio ordenador: explica un pasaje denso, propone cómo desmontarlo y sugiere quién le llevaría la contraria. Opcional. |
@@ -65,13 +66,19 @@ Spinoza, Hume y Kant—, arranca una vez con `ORGANON_SEED_ENABLED=true`; la car
 
 ```powershell
 ollama serve
-ollama pull gemma4:12b     # o el modelo que prefieras
+ollama pull gemma4:12b       # el asistente; o el modelo que prefieras
+ollama pull embeddinggemma   # la búsqueda por significado (622 MB)
 ```
 
 El modelo se elige con `OLLAMA_MODEL` (por defecto `gemma4:12b`). Uno de 12 000 millones de
 parámetros puede tardar más de un minuto por respuesta en CPU; `gemma4:e2b` responde en unos
 segundos con menos finura. **Si Ollama no está encendido la aplicación funciona igual**: el panel lo
 detecta, lo dice y se sigue tomando notas a mano.
+
+La búsqueda por significado usa `OLLAMA_EMBEDDING_MODEL` (por defecto `embeddinggemma`,
+multilingüe). El backend indexa en segundo plano al arrancar y cada vez que guardas algo, y solo
+recalcula lo que cambió. Sin Ollama, o sin ese modelo, la búsqueda sigue funcionando por palabras y
+lo avisa.
 
 ## Pruebas
 

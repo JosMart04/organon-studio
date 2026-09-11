@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -10,6 +10,7 @@ import {
   Network,
   NotebookPen,
   Plus,
+  Search,
   Settings,
   SquareSigma,
   User,
@@ -21,6 +22,7 @@ import {
   WorkDialog,
 } from "@/components/create/create-dialogs";
 import { SettingsDialog } from "@/components/settings/settings-dialog";
+import { CommandPalette } from "@/components/search/command-palette";
 import { CorpusRefreshProvider, useRefrescarCorpus } from "@/lib/corpus-refresh";
 
 const NAV = [
@@ -70,9 +72,23 @@ function Shell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [alta, setAlta] = useState<Alta>(null);
   const [ajustesAbiertos, setAjustesAbiertos] = useState(false);
+  const [buscando, setBuscando] = useState(false);
 
   // Tras crear algo, las vistas abiertas recargan sus datos.
   const refrescar = useRefrescarCorpus();
+
+  // Ctrl+K (⌘K en Mac) abre la búsqueda desde cualquier pantalla. Los navegadores
+  // dejan que la página se quede con el atajo si lo reclama con preventDefault.
+  useEffect(() => {
+    const alPulsar = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setBuscando((abierta) => !abierta);
+      }
+    };
+    window.addEventListener("keydown", alPulsar);
+    return () => window.removeEventListener("keydown", alPulsar);
+  }, []);
 
   return (
     <div className="flex min-h-screen">
@@ -89,6 +105,21 @@ function Shell({ children }: { children: React.ReactNode }) {
             </div>
           </div>
         </Link>
+
+        <div className="border-b border-ink-800 p-2.5">
+          <button
+            type="button"
+            onClick={() => setBuscando(true)}
+            title="Buscar en tu cuaderno (Ctrl+K, ⌘K en Mac)"
+            className="flex w-full items-center gap-2 rounded-md border border-ink-800 bg-ink-950 px-2.5 py-1.5 text-[12px] text-ink-500 transition-colors hover:border-ink-700 hover:text-ink-300"
+          >
+            <Search className="size-3.5" strokeWidth={1.75} />
+            Buscar…
+            <kbd className="ml-auto rounded border border-ink-700 px-1 font-sans text-[10px] text-ink-500">
+              Ctrl K
+            </kbd>
+          </button>
+        </div>
 
         {/* Añadir al cuaderno está disponible desde cualquier pantalla: lo que
             se descubre leyendo se apunta en el momento o se pierde. */}
@@ -183,9 +214,17 @@ function Shell({ children }: { children: React.ReactNode }) {
           })}
           <button
             type="button"
+            onClick={() => setBuscando(true)}
+            aria-label="Buscar"
+            className="ml-auto shrink-0 rounded border border-ink-700 px-2 py-1 text-xs text-ink-300"
+          >
+            <Search className="size-3.5" />
+          </button>
+          <button
+            type="button"
             onClick={() => setAjustesAbiertos(true)}
             aria-label="Ajustes"
-            className="ml-auto shrink-0 rounded border border-ink-700 px-2 py-1 text-xs text-ink-300"
+            className="shrink-0 rounded border border-ink-700 px-2 py-1 text-xs text-ink-300"
           >
             <Settings className="size-3.5" />
           </button>
@@ -210,6 +249,8 @@ function Shell({ children }: { children: React.ReactNode }) {
       <WorkDialog open={alta === "libro"} onClose={() => setAlta(null)} onCreated={refrescar} />
       <PassageDialog open={alta === "idea"} onClose={() => setAlta(null)} onCreated={refrescar} />
       <SettingsDialog open={ajustesAbiertos} onClose={() => setAjustesAbiertos(false)} />
+      {/* Montada solo mientras está abierta: cada búsqueda empieza en blanco. */}
+      {buscando && <CommandPalette onClose={() => setBuscando(false)} />}
     </div>
   );
 }
