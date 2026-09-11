@@ -17,7 +17,7 @@ quiera curiosear.
 | **Leer** | El fragmento a la izquierda, lo que vas descubriendo a la derecha. Selecciona una frase y conviértela en nota, o pregunta qué entiende ese autor por una palabra concreta. |
 | **Desmontar** | Qué sostiene el autor, con qué razones y qué está dando por obvio sin decirlo. Se ordenan arrastrando, y cada crítica se ancla a la razón exacta que falla. |
 | **Palabras** | «Sustancia» no quiere decir lo mismo en Descartes que en Spinoza. Muchas discusiones filosóficas son solo eso. Aquí se ven en columnas. |
-| **El debate** | Quién refuta a quién y quién se apoya en quién, como un mapa navegable que se dibuja con lo que vas anotando. |
+| **El debate** | Quién refuta a quién y quién se apoya en quién, como un mapa navegable que se dibuja con lo que vas anotando. Se guarda entero, con su leyenda, como imagen PNG o como SVG. |
 | **Asistente** | Un modelo que corre en tu propio ordenador: explica un pasaje denso, propone cómo desmontarlo y sugiere quién le llevaría la contraria. Opcional. |
 | **Exportación** | Tus notas a Markdown (Obsidian) y, si te hace falta, bloques LaTeX para un trabajo. |
 | **Copia de seguridad** | Todo el cuaderno en un único fichero `.json`, desde **Ajustes** (el engranaje al pie del menú). Se restaura fusionando con lo que ya tienes, sin duplicar, o sustituyéndolo entero. Antes de restaurar ves qué contiene, y si el fichero tiene algún problema no se toca nada. |

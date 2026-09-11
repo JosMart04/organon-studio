@@ -24,6 +24,7 @@ import { RELATION_COLORS, humanize } from "@/lib/vocabulario";
 import { EmptyState, ErrorState, PageHeader } from "@/components/ui/panel";
 import { Avatar } from "@/components/ui/badges";
 import { NODE_TYPES } from "@/components/graph/graph-nodes";
+import { ExportarMapa } from "@/components/graph/export-buttons";
 
 const MINIMAP_COLORS: Record<string, string> = {
   philosopher: "#4e5a6b",
@@ -141,6 +142,12 @@ export default function GraphPage() {
                 </option>
               ))}
             </select>
+            <ExportarMapa
+              nodos={nodes}
+              epoca={epoch || undefined}
+              palabra={concepts.data?.find((c) => c.id === conceptId)?.term}
+              disabled={graph.loading || Boolean(graph.error) || vacio}
+            />
           </>
         }
       />

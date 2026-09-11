@@ -172,7 +172,9 @@ que parte la cadena por comas.
    menú lateral. Deben guardarse y aparecer al instante en los desplegables.
 3. Ir a **Leer**: el selector debe listar el libro recién creado.
 4. Seleccionar una palabra del texto y pulsar **Ver término**.
-5. Ir a **El debate**: deben aparecer los nodos.
+5. Ir a **El debate**: deben aparecer los nodos, y **Imagen PNG** debe descargar
+   el mapa completo con su leyenda. La exportación ocurre en el navegador, así
+   que no depende del backend.
 6. Abrir el **Asistente**: en producción debe decir que está desactivado, sin
    romper nada.
 7. Abrir **Ajustes** (engranaje al pie del menú) y pulsar **Descargar copia de
