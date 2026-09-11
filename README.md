@@ -20,6 +20,7 @@ quiera curiosear.
 | **El debate** | Quién refuta a quién y quién se apoya en quién, como un mapa navegable que se dibuja con lo que vas anotando. |
 | **Asistente** | Un modelo que corre en tu propio ordenador: explica un pasaje denso, propone cómo desmontarlo y sugiere quién le llevaría la contraria. Opcional. |
 | **Exportación** | Tus notas a Markdown (Obsidian) y, si te hace falta, bloques LaTeX para un trabajo. |
+| **Copia de seguridad** | Todo el cuaderno en un único fichero `.json`, desde **Ajustes** (el engranaje al pie del menú). Se restaura fusionando con lo que ya tienes, sin duplicar, o sustituyéndolo entero. Antes de restaurar ves qué contiene, y si el fichero tiene algún problema no se toca nada. |
 
 ## Stack
 

@@ -10,6 +10,7 @@ import {
   Network,
   NotebookPen,
   Plus,
+  Settings,
   SquareSigma,
   User,
 } from "lucide-react";
@@ -19,6 +20,7 @@ import {
   PhilosopherDialog,
   WorkDialog,
 } from "@/components/create/create-dialogs";
+import { SettingsDialog } from "@/components/settings/settings-dialog";
 import { CorpusRefreshProvider, useRefrescarCorpus } from "@/lib/corpus-refresh";
 
 const NAV = [
@@ -67,6 +69,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 function Shell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [alta, setAlta] = useState<Alta>(null);
+  const [ajustesAbiertos, setAjustesAbiertos] = useState(false);
 
   // Tras crear algo, las vistas abiertas recargan sus datos.
   const refrescar = useRefrescarCorpus();
@@ -141,9 +144,20 @@ function Shell({ children }: { children: React.ReactNode }) {
           })}
         </nav>
 
-        <p className="border-t border-ink-800 px-5 py-3 text-[10px] leading-relaxed text-ink-600">
-          Tu cuaderno de lectura filosófica
-        </p>
+        <div className="flex items-center justify-between gap-2 border-t border-ink-800 py-2 pl-5 pr-2.5">
+          <p className="text-[10px] leading-relaxed text-ink-600">
+            Tu cuaderno de lectura filosófica
+          </p>
+          <button
+            type="button"
+            onClick={() => setAjustesAbiertos(true)}
+            aria-label="Ajustes"
+            title="Ajustes: copia de seguridad y restauración"
+            className="shrink-0 rounded p-1.5 text-ink-500 transition-colors hover:bg-ink-800 hover:text-ink-200"
+          >
+            <Settings className="size-4" strokeWidth={1.75} />
+          </button>
+        </div>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
@@ -169,8 +183,17 @@ function Shell({ children }: { children: React.ReactNode }) {
           })}
           <button
             type="button"
-            onClick={() => setAlta("idea")}
+            onClick={() => setAjustesAbiertos(true)}
+            aria-label="Ajustes"
             className="ml-auto shrink-0 rounded border border-ink-700 px-2 py-1 text-xs text-ink-300"
+          >
+            <Settings className="size-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => setAlta("idea")}
+            aria-label="Añadir idea"
+            className="shrink-0 rounded border border-ink-700 px-2 py-1 text-xs text-ink-300"
           >
             <Plus className="size-3.5" />
           </button>
@@ -186,6 +209,7 @@ function Shell({ children }: { children: React.ReactNode }) {
       />
       <WorkDialog open={alta === "libro"} onClose={() => setAlta(null)} onCreated={refrescar} />
       <PassageDialog open={alta === "idea"} onClose={() => setAlta(null)} onCreated={refrescar} />
+      <SettingsDialog open={ajustesAbiertos} onClose={() => setAjustesAbiertos(false)} />
     </div>
   );
 }

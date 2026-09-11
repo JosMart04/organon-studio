@@ -320,3 +320,40 @@ export interface RivalSuggestion {
 export interface RivalSuggestions {
   suggestions: RivalSuggestion[];
 }
+
+// ---------------------------------------------------------------------------
+// Copia de seguridad
+// ---------------------------------------------------------------------------
+
+export type ImportMode = "MERGE" | "REPLACE";
+
+/**
+ * Lo mínimo que el cliente lee de una copia para enseñar un resumen antes de
+ * restaurarla. El contenido de las entradas no se toca aquí: el fichero viaja
+ * tal cual al servidor, que es quien lo valida.
+ */
+export interface BackupDocument {
+  format: string;
+  formatVersion: number;
+  schemaVersion: string;
+  exportedAt: string;
+  counts: Record<string, number>;
+  data: {
+    philosophers?: unknown[];
+    works?: unknown[];
+    passages?: unknown[];
+    concepts?: unknown[];
+    definitions?: unknown[];
+    arguments?: unknown[];
+    relations?: unknown[];
+  };
+}
+
+export interface ImportReport {
+  mode: ImportMode;
+  /** Por tipo (philosophers, works…): cuántas entradas se han añadido. */
+  created: Record<string, number>;
+  /** Por tipo: cuántas se han omitido porque ya estaban en el cuaderno. */
+  skipped: Record<string, number>;
+  warnings: string[];
+}

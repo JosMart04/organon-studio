@@ -175,10 +175,32 @@ que parte la cadena por comas.
 5. Ir a **El debate**: deben aparecer los nodos.
 6. Abrir el **Asistente**: en producción debe decir que está desactivado, sin
    romper nada.
-7. En la consola del navegador no debe haber errores de CORS.
+7. Abrir **Ajustes** (engranaje al pie del menú) y pulsar **Descargar copia de
+   seguridad**: debe bajar un fichero `organon-copia-….json`.
+8. En la consola del navegador no debe haber errores de CORS.
 
 Si los paneles salen vacíos y la consola muestra
 `No 'Access-Control-Allow-Origin' header`, es el paso 4.
+
+---
+
+## Llevar tus notas del ordenador a producción
+
+La base local y la de Neon son independientes. Para subir lo que ya tienes
+anotado en Windows:
+
+1. En local (`http://localhost:3000`): **Ajustes → Descargar copia de
+   seguridad**.
+2. En el dominio de Vercel: **Ajustes → Restaurar notas desde una copia**, elegir
+   el fichero y comprobar el resumen.
+3. Elegir **Fusionar** si producción ya tiene notas que quieres conservar: lo que
+   coincida por nombre se omite, así que repetir la operación no duplica nada.
+   **Sobrescribir todo** vacía el cuaderno de producción antes de cargar la copia
+   y no se puede deshacer; la interfaz ofrece descargar antes lo que hay.
+
+La restauración es todo o nada: si el fichero está mal, la respuesta enumera los
+problemas y la base queda como estaba. El mismo camino sirve a la inversa, para
+traer a local lo anotado en producción.
 
 ---
 
@@ -211,6 +233,7 @@ cd server; .\mvnw.cmd test "-Dexcluded.test.groups="
 | `FATAL: too many connections for role` | Se agotó el pool del tier gratuito | Bajar `DB_POOL_MAX` a `3` |
 | La primera petición tarda un minuto | El servicio gratuito de Render estaba dormido | Es el comportamiento del plan; un plan de pago lo elimina |
 | Un cambio en `NEXT_PUBLIC_API_URL` no surte efecto | Se incrusta en tiempo de build | Volver a desplegar en Vercel |
+| Restaurar responde «Esta copia se hizo con una versión más nueva» | El fichero sale de un despliegue más reciente que el que lo recibe | Desplegar la misma versión en ambos lados y repetir |
 
 ---
 

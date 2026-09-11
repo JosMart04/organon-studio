@@ -168,3 +168,18 @@ export const RELATION_COLORS = {
   RADICALIZA: "#d99a2b",
   MATIZA: "#6f7d90",
 } as const;
+
+// ---------------------------------------------------------------------------
+// Tipos de contenido del cuaderno
+// ---------------------------------------------------------------------------
+
+/** En el orden de la copia de seguridad, que es el orden en que se restauran. */
+export const TIPOS_CUADERNO = [
+  ["philosophers", "Pensadores"],
+  ["works", "Libros"],
+  ["passages", "Fragmentos"],
+  ["concepts", "Palabras"],
+  ["definitions", "Definiciones"],
+  ["arguments", "Ideas"],
+  ["relations", "Conexiones del debate"],
+] as const;

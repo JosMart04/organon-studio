@@ -10,6 +10,8 @@ import type {
   Epoch,
   ExplainResponse,
   ExtractedIdeas,
+  ImportMode,
+  ImportReport,
   Objection,
   ObjectionRequest,
   Passage,
@@ -243,4 +245,17 @@ export const exports = {
   latexUrl: (argumentId: number) => buildUrl(`/export/latex/${argumentId}`),
   markdown: (workId: number) => request<string>(`/export/markdown/${workId}`),
   latex: (argumentId: number) => request<string>(`/export/latex/${argumentId}`),
+};
+
+// ---------------------------------------------------------------------------
+// Copia de seguridad
+// ---------------------------------------------------------------------------
+
+export const backup = {
+  /** Enlace directo: el navegador descarga el fichero por su Content-Disposition. */
+  exportUrl: () => buildUrl("/backup/export"),
+
+  /** El texto viaja tal cual se leyó del fichero, sin volver a serializarlo. */
+  restore: (mode: ImportMode, rawJson: string) =>
+    request<ImportReport>("/backup/import", { method: "POST", body: rawJson, query: { mode } }),
 };

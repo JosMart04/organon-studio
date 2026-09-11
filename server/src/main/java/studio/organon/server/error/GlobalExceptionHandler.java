@@ -6,10 +6,12 @@ import java.util.Map;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import studio.organon.server.ai.AiUnavailableException;
+import studio.organon.server.backup.InvalidBackupException;
 
 /** Traduce las excepciones del dominio a respuestas RFC 9457 (ProblemDetail). */
 @RestControllerAdvice
@@ -38,6 +40,30 @@ public class GlobalExceptionHandler {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(
                 HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage());
         problem.setTitle("El asistente no esta disponible");
+        return problem;
+    }
+
+    /**
+     * La copia no se puede restaurar. Se lista cada problema, no solo el primero:
+     * quien arregla un fichero a mano quiere verlos todos de una vez.
+     */
+    @ExceptionHandler(InvalidBackupException.class)
+    public ProblemDetail handleInvalidBackup(InvalidBackupException ex) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        problem.setTitle("La copia de seguridad no es valida");
+        problem.setProperty("problems", ex.getProblems());
+        return problem;
+    }
+
+    /**
+     * JSON mal formado o con valores que no encajan (una epoca que no existe, un
+     * numero donde va texto). Sin esto Spring responde un 400 sin explicacion.
+     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ProblemDetail handleUnreadable(HttpMessageNotReadableException ex) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST,
+                "No se ha podido leer lo enviado: no es JSON válido o tiene valores inesperados.");
+        problem.setTitle("Peticion ilegible");
         return problem;
     }
 
