@@ -40,7 +40,7 @@ public class OllamaAvailability {
     private volatile Snapshot cached;
 
     public OllamaAvailability(@Value("${spring.ai.ollama.base-url:http://localhost:11434}") String baseUrl,
-                              @Value("${spring.ai.ollama.chat.options.model:}") String configuredModel,
+                              @Value("${spring.ai.ollama.chat.model:}") String configuredModel,
                               @Value("${organon.ai.enabled:true}") boolean featureEnabled) {
         this.baseUrl = baseUrl;
         this.configuredModel = configuredModel;

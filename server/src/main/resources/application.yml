@@ -50,15 +50,16 @@ spring:
         # deja explicito: lo contrario bloquearia el primer arranque tirando
         # gigabytes sin que nadie lo haya pedido.
         pull-model-strategy: never
+      # Spring AI 2 aplana las opciones: la forma con "options." esta obsoleta
+      # y su metadata apunta a estas. Los tiempos de espera no viven aqui, sino
+      # en spring.http.clients, que es el cliente que Spring AI reutiliza.
       chat:
-        options:
-          model: ${OLLAMA_MODEL:gemma4:12b}
-          # Analisis, no prosa creativa: interesa que el desglose sea estable.
-          temperature: 0.3
+        model: ${OLLAMA_MODEL:gemma4:12b}
+        # Analisis, no prosa creativa: interesa que el desglose sea estable.
+        temperature: 0.3
       embedding:
         # Multilingue y pequeno (622 MB). Solo se usa si esta descargado
         # (`ollama pull embeddinggemma`); sin el, se busca solo por palabras.
-        # En Spring AI 2 va sin "options.": esa forma esta obsoleta.
         model: ${OLLAMA_EMBEDDING_MODEL:embeddinggemma}
 
 server:
