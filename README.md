@@ -162,7 +162,7 @@ respuesta sólida. Queda historial, y el repaso vuelve antes sobre lo que salió
 - **Sin Docker, sin contenedores.** Todo corre nativo en Windows: PostgreSQL como servicio, el backend
   con `mvnw.cmd`, el frontend con `npm`, Ollama como proceso propio.
 - **El esquema lo posee Flyway**; Hibernate arranca en `ddl-auto: validate`, de modo que una entidad
-  desalineada con su tabla falla al arrancar, no en producción.
+  desalineada con su tabla falla al arrancar, no a mitad de una sesión de lectura.
 - **pgvector no está disponible de forma nativa en Windows** (exige compilar con Visual Studio): los
   vectores se guardan como `REAL[]` normalizados y el coseno se calcula en Java. Para un cuaderno
   personal son milisegundos.
@@ -179,7 +179,7 @@ respuesta sólida. Queda historial, y el repaso vuelve antes sobre lo que salió
 | Migraciones | **Flyway** | Historial versionado y reproducible del esquema (V1…V4) |
 | Base de datos | **PostgreSQL 18** | `tsvector` + GIN, `unaccent`, `NULLS NOT DISTINCT`, `TRUNCATE` transaccional y arrays nativos |
 | IA | **Spring AI 2.0.1 + Ollama** | Cliente tipado con salida estructurada a *records*; el modelo es local y sustituible |
-| Frontend | **Next.js 16 (App Router) + React 19** | Rutas por fichero, componentes de cliente y build estático para Vercel |
+| Frontend | **Next.js 16 (App Router) + React 19** | Rutas por fichero, componentes de cliente y una interfaz que corre entera en tu navegador |
 | Tipos | **TypeScript** | El contrato de la API se refleja en `types/organon.ts` y el compilador lo vigila |
 | Estilos | **Tailwind CSS v4** | Tema en CSS (`@theme`) y clases de utilidad: una sola paleta para toda la app |
 | Grafo | **@xyflow/react 12** | Nodos personalizados, aristas tipadas, minimapa y control total del lienzo |
@@ -344,11 +344,10 @@ organon-studio/
 │   │   ├── search/          indexador de vectores, fusión de rankings, consultas FTS
 │   │   ├── review/          planificador del repaso, servicio y controlador
 │   │   ├── backup/          formato portable, validador e importador transaccional
-│   │   ├── config/          CORS y traducción de DATABASE_URL en la nube
+│   │   ├── config/          CORS y ajustes de arranque
 │   │   └── error/           ProblemDetail con mensajes para el lector
 │   ├── src/main/resources/
-│   │   ├── application.yml           perfil local
-│   │   ├── application-prod.yml      perfil de despliegue
+│   │   ├── application.yml           configuración de la aplicación
 │   │   └── db/migration/             V1…V4 (Flyway)
 │   ├── src/test/java/…               unitarias + integración (`@Tag("integracion")`)
 │   └── mvnw.cmd                      wrapper de Maven
@@ -369,7 +368,6 @@ organon-studio/
 │   └── scripts/             copia de recursos de pdf.js a public/
 │
 ├── .github/workflows/ci.yml                  backend `verify` + frontend `lint`/`build`
-├── DEPLOYMENT.md                             Neon + Render + Vercel, paso a paso
 └── README.md
 ```
 
@@ -403,15 +401,6 @@ organon-studio/
    tarda un segundo.
 
 ---
-
-## Despliegue
-
-La aplicación también corre en la nube con niveles gratuitos —Neon (PostgreSQL), Render (backend) y
-Vercel (frontend)— sin contenedores. El paso a paso, las variables de cada servicio y los problemas
-frecuentes están en **[`DEPLOYMENT.md`](DEPLOYMENT.md)**.
-
-En producción el asistente y la búsqueda por significado quedan desactivados —Ollama corre en la
-máquina del lector, no en un servidor— y la interfaz lo comunica sin romperse.
 
 ## Licencia
 
