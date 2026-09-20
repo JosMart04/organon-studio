@@ -6,8 +6,10 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
- * CORS acotado a los origenes declarados. En local es el dev server de Next.js;
- * en produccion, el dominio de Vercel que se inyecta por variable de entorno.
+ * CORS acotado a los origenes declarados: el dev server de Next.js en
+ * localhost:3000, o el que se indique en CORS_ALLOWED_ORIGINS si se cambia el
+ * puerto. Se declara explicito en vez de abrirlo a todo porque el navegador es
+ * el unico cliente de esta API.
  */
 @Configuration
 public class WebConfig implements WebMvcConfigurer {

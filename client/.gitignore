@@ -37,9 +37,6 @@ yarn-error.log*
 # recursos de pdf.js copiados por scripts/copiar-recursos-pdf.mjs
 /public/pdfjs/
 
-# vercel
-.vercel
-
 # typescript
 *.tsbuildinfo
 next-env.d.ts

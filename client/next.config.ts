@@ -3,11 +3,11 @@ import type { NextConfig } from "next";
 /**
  * El cliente habla con el backend desde el navegador, no desde el servidor de
  * Next, así que la única variable que importa es NEXT_PUBLIC_API_URL, que se
- * inyecta en el bundle en tiempo de build. En Vercel se define en el proyecto;
- * en local sale de client/.env.local.
+ * inyecta en el bundle en tiempo de build y sale de client/.env.local. Si la
+ * cambias, hay que volver a construir: no se lee en ejecución.
  */
 const nextConfig: NextConfig = {
-  // Un fallo de tipos no debe colarse en un despliegue. En Next 16 el lint ya
+  // Un fallo de tipos no debe colarse en un build. En Next 16 el lint ya
   // no forma parte de `next build`: corre aparte, y CI lo ejecuta como paso
   // propio antes del build.
   typescript: { ignoreBuildErrors: false },

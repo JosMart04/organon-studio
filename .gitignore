@@ -12,7 +12,6 @@ node_modules/
 .next/
 .turbo/
 next-env.d.ts
-.vercel/
 *.tsbuildinfo
 
 # ---------- Entorno y secretos ----------
