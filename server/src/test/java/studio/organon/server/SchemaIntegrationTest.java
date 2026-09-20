@@ -21,7 +21,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * {@code .\mvnw.cmd test -Dexcluded.test.groups=}
  */
 @Tag("integracion")
-@SpringBootTest(properties = "organon.seed.enabled=false")
+@SpringBootTest
 class SchemaIntegrationTest {
 
     @Autowired

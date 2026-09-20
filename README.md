@@ -253,7 +253,6 @@ Copy-Item client\.env.example client\.env.local
 | `OLLAMA_MODEL` | `gemma4:12b` | Modelo del tutor (`gemma4:e2b` responde en segundos) |
 | `OLLAMA_EMBEDDING_MODEL` | `embeddinggemma` | Modelo de la búsqueda por significado |
 | `ORGANON_AI_TIMEOUT` | `300s` | Espera máxima: un modelo en CPU tarda |
-| `ORGANON_SEED_ENABLED` | `false` | Datos de ejemplo (debate Descartes–Spinoza–Hume–Kant) |
 
 ### 3. Arrancar los dos servidores (terminales en paralelo)
 

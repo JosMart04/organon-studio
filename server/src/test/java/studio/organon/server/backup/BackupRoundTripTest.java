@@ -63,7 +63,7 @@ import studio.organon.server.repository.WorkRepository;
  */
 @Tag("integracion")
 @Transactional
-@SpringBootTest(properties = {"organon.seed.enabled=false", "organon.search.reindex-on-startup=false"})
+@SpringBootTest(properties = "organon.search.reindex-on-startup=false")
 class BackupRoundTripTest {
 
     @Autowired private BackupService backupService;

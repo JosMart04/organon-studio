@@ -39,7 +39,7 @@ import studio.organon.server.web.dto.WorkRequest;
  */
 @Tag("integracion")
 @Transactional
-@SpringBootTest(properties = {"organon.seed.enabled=false", "organon.search.reindex-on-startup=false"})
+@SpringBootTest(properties = "organon.search.reindex-on-startup=false")
 class ReviewIntegrationTest {
 
     @Autowired private CorpusService corpus;

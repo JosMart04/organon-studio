@@ -14,7 +14,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
  * dejaria, por ejemplo, vectores de busqueda de algo que no existe.
  *
  * <p>Esta registrado en {@link BaseEntity}, asi que cubre cualquier escritura
- * —formularios, semilla, restauracion de copias— sin que cada servicio tenga
+ * —formularios, restauracion de copias— sin que cada servicio tenga
  * que acordarse de avisar. Una transaccion que toca muchas entidades anuncia una
  * sola vez. Hibernate lo obtiene del contenedor de Spring, que es quien le
  * inyecta el publicador.
